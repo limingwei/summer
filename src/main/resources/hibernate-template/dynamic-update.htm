@@ -1,0 +1,24 @@
+<#-- 
+    动态更新SQL生成元模版 
+    根据对象数据结构生成动态语句模版,再生成非空更新语句
+-->
+<${pound}-- dynamic update sql template for ${type} -->
+<${at}compress single_line=true> <${pound}-- 合并换行 -->
+/* updateIgnoreNull(${type.simpleName}) */
+    UPDATE ${dao.getTableName(type)} 
+        SET 
+            <#list dao.getBasicFields(type) as field> 
+                <${pound}if entity.${field}??> 
+                    <#if def['Mirrors'].isBooleanType(dao.getFieldType(type,field))> 
+                        ${dao.getColumn(type,field)!}=${dollar}{entity.${field}?string('1','0')} , 
+                    <#elseif def['Mirrors'].isBasicType(dao.getFieldType(type,field))> 
+                        ${dao.getColumn(type,field)!}='${dollar}{entity.${field}}' , 
+                    <#else> 
+                        ${dao.getJoinColumn(type,field)}='${dollar}{entity.${field}.${dao.getIdField(type)}}' , <${pound}-- 关联对象属性 -->
+                    </#if> 
+                </${pound}if> 
+            </#list>
+            ${dao.getIdField(type)}=${dao.getIdField(type)}
+        WHERE ${dao.getIdField(type)}='${dollar}{entity.${dao.getIdField(type)}!}' 
+</${at}compress>
+<#-- 动态更新SQL生成元模版结束 -->

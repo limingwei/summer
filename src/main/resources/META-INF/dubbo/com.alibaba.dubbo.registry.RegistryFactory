@@ -1,0 +1,4 @@
+multicast2=cn.limw.summer.dubbo.registry.multicast.MulticastRegistryFactory
+redis2=cn.limw.summer.dubbo.registry.redis.RedisRegistryFactory
+mysql=cn.limw.summer.dubbo.registry.mysql.MySqlRegistryFactory
+noregistry=cn.limw.summer.dubbo.registry.noregistry.NoRegistryFactory

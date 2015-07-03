@@ -15,25 +15,23 @@ import org.springframework.orm.hibernate4.HibernateTemplate;
 import org.springframework.orm.hibernate4.SessionHolder;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
-import com.ewei.support.dao.Page;
-import com.ewei.support.druid.filter.ThreadLocalFilter;
-import com.ewei.support.entity.CreatedAt;
-import com.ewei.support.entity.Id;
-import com.ewei.support.freemarker.util.FreeMarkerUtil;
-import com.ewei.support.hibernate.HibernateUtil;
-import com.ewei.support.java.sql.util.PreparedStatementUtil;
-import com.ewei.support.time.Clock;
-import com.ewei.support.util.Asserts;
-import com.ewei.support.util.Files;
-import com.ewei.support.util.Logs;
-import com.ewei.support.util.Maps;
-import com.ewei.support.util.Nums;
-import com.ewei.support.util.StringUtil;
-
+import cn.limw.summer.dao.Page;
+import cn.limw.summer.druid.filter.ThreadLocalFilter;
+import cn.limw.summer.entity.CreatedAt;
+import cn.limw.summer.entity.Id;
+import cn.limw.summer.freemarker.util.FreeMarkerUtil;
+import cn.limw.summer.hibernate.HibernateUtil;
+import cn.limw.summer.java.sql.util.PreparedStatementUtil;
+import cn.limw.summer.time.Clock;
+import cn.limw.summer.util.Asserts;
+import cn.limw.summer.util.Files;
+import cn.limw.summer.util.Logs;
+import cn.limw.summer.util.Maps;
+import cn.limw.summer.util.Nums;
+import cn.limw.summer.util.StringUtil;
 import freemarker.template.Template;
 
 /**
- * cn.infocare.support.hibernate.HibernateDao ( itsm )
  * @author li ( limingwei@mail.com )
  * @version 1 ( 2014年5月16日 上午11:48:18 )
  */

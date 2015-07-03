@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans
+    xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:util="http://www.springframework.org/schema/util"
+    xmlns:p="http://www.springframework.org/schema/p"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/util
+        http://www.springframework.org/schema/util/spring-util.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+    <context:annotation-config />
+
+    <aop:aspectj-autoproxy proxy-target-class="true" />
+
+    <import resource="/spring-beans.xml" />
+
+    <bean class="cn.limw.summer.spring.aop.interceptor.timeout.TimeoutWork" />
+
+    <aop:config>
+        <aop:pointcut
+            id="timeoutPointcut"
+            expression="execution(* com..*(..))" />
+        <aop:advisor
+            advice-ref="timeoutInterceptor"
+            pointcut-ref="timeoutPointcut" />
+        <aop:advisor
+            advice-ref="timelogInterceptor"
+            pointcut-ref="timeoutPointcut" />
+    </aop:config>
+
+    <bean
+        id="timeoutInterceptor"
+        class="cn.limw.summer.spring.aop.timeout.TimeoutInterceptor" />
+
+    <bean
+        id="timelogInterceptor"
+        class="cn.limw.summer.spring.aop.timelog.TimelogInterceptor" />
+</beans>

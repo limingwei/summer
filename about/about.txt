@@ -1,0 +1,60 @@
+问题：
+1. 用前后缀时注释对应不上
+2. @Table不标注表名时候没有加前后缀
+
+netstat -antp
+
+netstat -anup
+
+添加mvn到环境变量path
+export PATH=/**/apps/apache-maven-3.2.2/bin:$PATH
+
+kill $(netstat -tlnp|grep 20880|awk  '{print $7}'|awk -F '/' '{print $1}')
+kill -9 $(netstat -tlnp|grep 20880|awk  '{print $7}'|awk -F '/' '{print $1}')
+
+查看端口占用情况的命令：
+lsof -i
+
+ps -ef 列出进程
+
+-Ddubbo.registry.address=multicast://224.5.6.8:1234?unicast=false
+
+svn版本号
+svn info | grep Revision | awk '{print $2}'
+
+多播地址 
+111服务器 224.5.6.1:1234
+limingwei 224.5.6.2:1234
+
+reboot 重启服务器
+
+项目启动失败时检查 linux / 路径文件系统磁盘占用是否已满
+
+PushbackInputStream
+inputStream.reset()
+
+上传文件
+scp *.tar.gz root@121.41.62.44:/home/*.tar.gz
+
+查看端口占用程序
+netstat -noap | grep 80
+
+解压到指定目录
+unzip -d ROOT *-full-20141201-162657.war
+
+linux 脚本
+http://codingstandards.iteye.com/blog/1154520
+
+找到最新文件
+ls *-20*-*.war -t|head -1
+*-20141202-095138.war
+
+ls *-full-20*-*.war -t|head -1
+*-full-20141201-162657.war
+
+启动SVN服务器
+netstat -anp | grep svn
+./usr/bin/svnserve -d -r /home/*/svn/repository/*
+
+删除30天前文件
+find /home/*/log/ -type f -mtime +30 -exec rm -f {} \;

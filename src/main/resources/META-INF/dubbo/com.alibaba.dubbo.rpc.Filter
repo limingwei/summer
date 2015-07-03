@@ -1,0 +1,5 @@
+provider-side-entity-write-back=cn.limw.summer.dubbo.filter.entitywriteback.ProviderSideEntityWriteBackFilter
+consumer-side-entity-write-back=cn.limw.summer.dubbo.filter.entitywriteback.ConsumerSideEntityWriteBackFilter
+consumer-side-logger-anchor=cn.limw.summer.dubbo.filter.anchor.ConsumerSideLoggerAnchorFilter
+provider-side-logger-anchor=cn.limw.summer.dubbo.filter.anchor.ProviderSideLoggerAnchorFilter
+consumer-side-invoke-log=cn.limw.summer.dubbo.filter.log.ConsumerSideInvokeLogFilter

@@ -1,0 +1,2 @@
+hessian4hibernate=cn.limw.summer.dubbo.serialize.hessian.hibernate.Hessian2Serialization4Hibernate
+gson=cn.limw.summer.dubbo.serialize.gson.GsonSerialization
