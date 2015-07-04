@@ -2,6 +2,7 @@ package cn.limw.summer.dao.hibernate.search;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.springframework.stereotype.Controller;
 
 import cn.limw.summer.dao.hibernate.search.SearchCriteria;
 

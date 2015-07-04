@@ -32,7 +32,7 @@
     <context:annotation-config />
 
     <!-- 自动扫描的包名 -->
-    <context:component-scan base-package="com.unblocked" />
+    <context:component-scan base-package="*" />
 
     <!-- AnnotationAwareAspectJAutoProxyCreator CGLib -->
     <aop:aspectj-autoproxy proxy-target-class="true" />
@@ -40,7 +40,7 @@
     <!-- 可以被注入的ApplicationContext -->
     <bean
         id="applicationContext"
-        class="com.unblocked.support.spring.ApplicationContextAware" />
+        class="ApplicationContextAware" />
 
     <!-- dao -->
     <import resource="spring-dao.xml" />
