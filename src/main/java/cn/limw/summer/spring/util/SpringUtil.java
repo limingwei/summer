@@ -5,7 +5,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.sql.DataSource;
+
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 
 import cn.limw.summer.util.Mirrors;
 
@@ -26,6 +29,10 @@ public class SpringUtil {
                 return bean;
             }
         }
+        return null;
+    }
+
+    public static DataSource getBean(ApplicationContextAware applicationContextAware, String beanId) {
         return null;
     }
 }

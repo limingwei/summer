@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<builder>
+    <consts
+        overwrite="rename"
+        db_url="jdbc:mysql://192.168.1.15:3306/upsss?useUnicode=true&amp;characterEncoding=UTF-8"
+        db_user="root"
+        db_password="unblocked"
+        mould_root="D:/workspace/builder/src/test/resources/"
+        java_out="D:/workspace/upsss/src/com/unblocked/upsss/"
+        js_out="D:/workspace/upsss/WebRoot/js/upsss/"
+        jsp_out="D:/workspace/upsss/WebRoot/WEB-INF/view_jsp_back/" />
+
+    <entities>
+        <entity
+            table="upsss_instock_order"
+            title="入库订单/开单"
+            url="instock_order"
+            type="InstockOrder" />
+    </entities>
+
+    <moulds>
+        <mould
+            name="${mould_root}/Action.java.ftl"
+            out="${java_out}/action/${entity.type}Action.java" />
+        <mould
+            name="${mould_root}/IService.java.ftl"
+            out="${java_out}/service/I${entity.type}Service.java" />
+        <mould
+            name="${mould_root}/ServiceImpl.java.ftl"
+            out="${java_out}/service/impl/${entity.type}ServiceImpl.java" />
+        <mould
+            name="${mould_root}/IDao.java.ftl"
+            out="${java_out}/dao/I${entity.type}Dao.java" />
+        <mould
+            name="${mould_root}/DaoImpl.java.ftl"
+            out="${java_out}/dao/impl/${entity.type}DaoImpl.java" />
+        <mould
+            name="${mould_root}/list.js.ftl"
+            out="${js_out}/${entity.url}/list.js" />
+        <mould
+            name="${mould_root}/list.jsp.ftl"
+            out="${jsp_out}/${entity.url}/list.jsp" />
+        <mould
+            name="${mould_root}/edit.jsp.ftl"
+            out="${jsp_out}/${entity.url}/edit.jsp" />
+    </moulds>
+</builder>
