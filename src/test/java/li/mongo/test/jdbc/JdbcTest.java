@@ -6,11 +6,10 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.Types;
 
-import li.mongo.driver.MongoConnection;
-
 import org.junit.Test;
 
-import com.unblocked.support.sql.util.ResultSetUtil;
+import cn.limw.summer.java.sql.util.ResultSetUtil;
+import cn.limw.summer.mongo.driver.MongoConnection;
 
 /**
  * @author 明伟
@@ -29,7 +28,7 @@ public class JdbcTest {
     }
 
     /**
-     * @see li.mongo.driver.util.Mongos#getWhere(net.sf.jsqlparser.expression.Expression, li.mongo.driver.MongoPreparedStatement)
+     * @see cn.limw.summer.mongo.driver.util.Mongos#getWhere(net.sf.jsqlparser.expression.Expression, cn.limw.summer.mongo.driver.MongoPreparedStatement)
      */
     @Test
     public void testIsNull() throws Exception {

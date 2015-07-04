@@ -3,6 +3,8 @@ package li.mongo.driver.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+import cn.limw.summer.mongo.driver.util.Urls;
+
 /**
  * @author li
  * @version 1 2014年3月7日下午2:34:40

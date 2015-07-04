@@ -62,4 +62,9 @@ public class ResultSetUtil {
             throw new RuntimeException(e);
         }
     }
+
+    public static char[] toString(ResultSet executeQuery) {
+        // TODO Auto-generated method stub
+        return null;
+    }
 }

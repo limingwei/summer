@@ -1,6 +1,7 @@
 package builder;
 
-import builder.util.Errors;
+import cn.limw.summer.builder.Builder;
+import cn.limw.summer.builder.util.Errors;
 
 public class Demo {
     public static void main(String[] args) {

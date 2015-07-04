@@ -1,8 +1,8 @@
 package li.mongo.test.mongo;
 
-import li.mongo.driver.MongoConnection;
-
 import org.junit.Test;
+
+import cn.limw.summer.mongo.driver.MongoConnection;
 
 import com.mongodb.DB;
 import com.mongodb.DBCollection;

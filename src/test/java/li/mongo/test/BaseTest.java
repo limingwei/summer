@@ -8,8 +8,8 @@ import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.Assert;
 
-import com.unblocked.support.dao.Page;
-import com.unblocked.support.web.spring.Mvcs;
+import cn.limw.summer.dao.Page;
+import cn.limw.summer.spring.web.servlet.Mvcs;
 
 /**
  * BaseTest
@@ -26,7 +26,7 @@ public class BaseTest {
     public void before() {
         page = new Page();
         page.setPageSize(3);
-        Mvcs.init(new MockHttpServletRequest(), new MockHttpServletResponse());
+        Mvcs.bind(new MockHttpServletRequest(), new MockHttpServletResponse());
     }
 
     public MockHttpServletRequest request() {

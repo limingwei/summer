@@ -3,6 +3,8 @@ package li.mongo.driver.util;
 import org.junit.Assert;
 import org.junit.Test;
 
+import cn.limw.summer.mongo.driver.util.Querys;
+
 public class QuerysTest {
     @Test
     public void isLimitBA() {

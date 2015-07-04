@@ -36,4 +36,8 @@ public class Errors {
         throwable.setStackTrace(stackTrace);
         return throwable;
     }
+
+    public static Object cast(String errorMessage) {
+        return null;
+    }
 }
