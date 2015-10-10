@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.EnumSet;
 
 import javax.servlet.DispatcherType;
-import javax.servlet.FilterRegistration.Dynamic;
 import javax.servlet.FilterChain;
+import javax.servlet.FilterRegistration.Dynamic;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -13,29 +13,13 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
-import summer.ioc.IocContext;
-import summer.ioc.IocLoader;
-import summer.ioc.impl.SummerIocContext;
-import summer.ioc.loader.AnnotationIocLoader;
-import summer.ioc.loader.ComplexIocLoader;
-import summer.ioc.loader.XmlIocLoader;
-
 /**
  * @author li
  * @version 1 (2015年10月10日 上午10:02:56)
  * @since Java7
  */
-public class SummerServletContextListener implements ServletContextListener {
-    private IocContext iocContext;
-
-    public synchronized IocContext getIocContext() {
-        if (null == iocContext) {
-            iocContext = new SummerIocContext(new ComplexIocLoader(new IocLoader[] { new AnnotationIocLoader(), new XmlIocLoader() }));
-        }
-        return iocContext;
-    }
-
-    public void contextInitialized(ServletContextEvent servletContextEvent) {
+public class SummerServletContextListener implements ServletContextListener { 
+    public final void contextInitialized(ServletContextEvent servletContextEvent) {
         addHelloWorldForAllRequest(servletContextEvent);
     }
 

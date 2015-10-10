@@ -1,5 +1,9 @@
 package summer.ioc.loader;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import summer.ioc.BeanDefinition;
 import summer.ioc.IocLoader;
 
 /**
@@ -8,5 +12,15 @@ import summer.ioc.IocLoader;
  * @since Java7
  */
 public class ComplexIocLoader implements IocLoader {
-    public ComplexIocLoader(IocLoader[] iocLoaders) {}
+    private ArrayList<BeanDefinition> beanDefinitions = new ArrayList<BeanDefinition>();
+
+    public ComplexIocLoader(IocLoader[] iocLoaders) {
+        for (IocLoader iocLoader : iocLoaders) {
+            beanDefinitions.addAll(iocLoader.getBeanDefinitions());
+        }
+    }
+
+    public List<BeanDefinition> getBeanDefinitions() {
+        return beanDefinitions;
+    }
 }
