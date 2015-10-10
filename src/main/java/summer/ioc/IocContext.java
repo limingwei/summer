@@ -8,7 +8,7 @@ package summer.ioc;
 public interface IocContext {
     public <T> T getBean(Class<T> type);
 
-    public <T> T getBean(Class<T> type, String name);
+    public <T> T getBean(Class<T> type, String id);
 
-    public Object getBean(String name);
+    public Object getBean(String id);
 }

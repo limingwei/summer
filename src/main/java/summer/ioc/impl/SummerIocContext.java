@@ -1,11 +1,15 @@
 package summer.ioc.impl;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import summer.converter.ConvertService;
+import summer.converter.impl.SummerConvertService;
 import summer.ioc.BeanDefinition;
+import summer.ioc.BeanField;
 import summer.ioc.IocContext;
 import summer.ioc.IocLoader;
 import summer.util.Assert;
@@ -23,6 +27,8 @@ public class SummerIocContext implements IocContext {
 
     private IocLoader iocLoader;
 
+    private ConvertService convertService;
+
     public IocLoader getIocLoader() {
         return iocLoader;
     }
@@ -34,6 +40,8 @@ public class SummerIocContext implements IocContext {
         this.beanDefinitions.addAll(iocLoader.getBeanDefinitions());
 
         this.beanInstances = new HashMap<BeanDefinition, Object>();
+
+        this.convertService = new SummerConvertService();
     }
 
     @SuppressWarnings("unchecked")
@@ -47,7 +55,21 @@ public class SummerIocContext implements IocContext {
     public synchronized Object getBeanInstance(BeanDefinition beanDefinition) {
         Object instance = beanInstances.get(beanDefinition);
         if (null == instance) {
-            beanInstances.put(beanDefinition, instance = Reflect.newInstance(beanDefinition.getBeanType()));
+            Class<?> beanType = beanDefinition.getBeanType();
+            Object beanInstance = Reflect.newInstance(beanType);
+
+            for (BeanField beanField : beanDefinition.getBeanFields()) {
+                if (BeanField.TYPE_PROPERTY_VALUE.equals(beanField.getType())) {
+                    Field field = Reflect.getField(beanType, beanField.getName());
+                    Object value = convertService.convert(String.class, field.getType(), beanField.getValue());
+                    Reflect.setFieldValue(beanInstance, field, value);
+                } else if (BeanField.TYPE_REFERENCE.equals(beanField.getType())) {
+
+                }
+            }
+
+            beanInstances.put(beanDefinition, beanInstance);
+            instance = beanInstance;
         }
         return instance;
     }
