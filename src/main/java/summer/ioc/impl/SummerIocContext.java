@@ -62,6 +62,8 @@ public class SummerIocContext implements IocContext {
         Object instance = beanInstances.get(beanDefinition);
         if (null == instance) {
             Class<?> beanType = beanDefinition.getBeanType();
+
+            // TODO 先生成代理, 代理加上Aop, 延迟到调用时候再实例化
             Object beanInstance = Reflect.newInstance(beanType);
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
