@@ -1,8 +1,7 @@
 package summer.util;
 
-import org.slf4j.LoggerFactory;
-
 import summer.log.Logger;
+import summer.log.logger.Slf4jLogger;
 
 /**
  * @author li
@@ -10,8 +9,15 @@ import summer.log.Logger;
  * @since Java7
  */
 public class Log {
-    public static Logger get() {
-        LoggerFactory.getLogger("");
-        return null;
+    public static Logger slf4j(String name) {
+        return new Slf4jLogger(org.slf4j.LoggerFactory.getLogger(name));
+    }
+
+    public static Logger slf4j(Class<?> type) {
+        return slf4j(type.getName());
+    }
+
+    public static Logger slf4j() {
+        return slf4j(Thread.currentThread().getStackTrace()[2].getClassName());
     }
 }
