@@ -31,23 +31,4 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.eclipse.jetty</groupId>
-                <artifactId>jetty-maven-plugin</artifactId>
-                <version>9.3.4.RC0</version>
-                <configuration>
-                    <httpConnector>
-                        <port>8180</port>
-                    </httpConnector>
-                    <webAppConfig>
-                        <defaultsDescriptor>webdefault.xml</defaultsDescriptor>
-                    </webAppConfig>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-    <packaging>war</packaging>
 </project>

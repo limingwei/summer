@@ -26,7 +26,7 @@ public class SummerServletContextListener implements ServletContextListener {
         dispatcherTypes.add(DispatcherType.INCLUDE);
 
         boolean isMatchAfter = true;
-        String urlPatterns = "/*";
+        String[] urlPatterns = { "*.do" };
         dynamic.addMappingForUrlPatterns(dispatcherTypes, isMatchAfter, urlPatterns);
     }
 

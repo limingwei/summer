@@ -17,7 +17,9 @@ import javax.servlet.ServletResponse;
 public class SummerFilter implements Filter {
     public void init(FilterConfig filterConfig) throws ServletException {}
 
-    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {}
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        response.getWriter().write("hello world");
+    }
 
     public void destroy() {}
 }
