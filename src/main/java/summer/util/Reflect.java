@@ -1,6 +1,7 @@
 package summer.util;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 
 /**
  * @author li
@@ -38,6 +39,15 @@ public class Reflect {
             return targetType.getDeclaredField(name);
         } catch (NoSuchFieldException e) {
             throw new RuntimeException(targetType + " do not has field " + name, e);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Object invokeMethod(Object target, Method method, Object[] args) {
+        try {
+            method.setAccessible(true);
+            return method.invoke(target, args);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
