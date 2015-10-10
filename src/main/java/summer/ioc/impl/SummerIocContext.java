@@ -12,7 +12,9 @@ import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocContext;
 import summer.ioc.IocLoader;
+import summer.log.Logger;
 import summer.util.Assert;
+import summer.util.Log;
 import summer.util.Reflect;
 
 /**
@@ -21,6 +23,8 @@ import summer.util.Reflect;
  * @since Java7
  */
 public class SummerIocContext implements IocContext {
+    private static final Logger log = Log.slf4j();
+
     private List<BeanDefinition> beanDefinitions;
 
     private Map<BeanDefinition, Object> beanInstances;
@@ -39,9 +43,11 @@ public class SummerIocContext implements IocContext {
         this.beanDefinitions = new ArrayList<BeanDefinition>();
         this.beanDefinitions.addAll(iocLoader.getBeanDefinitions());
 
+        this.convertService = new SummerConvertService();
+
         this.beanInstances = new HashMap<BeanDefinition, Object>();
 
-        this.convertService = new SummerConvertService();
+        log.info("SummerIocContext init, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
     }
 
     @SuppressWarnings("unchecked")
