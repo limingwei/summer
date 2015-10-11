@@ -71,7 +71,6 @@ public class SummerIocContext implements IocContext {
             Class<?> beanType = beanDefinition.getBeanType();
 
             // TODO 先生成代理, 代理加上Aop, 延迟到调用时候再实例化
-
             Object beanInstance = newBeanInstance(beanType);
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
@@ -80,7 +79,7 @@ public class SummerIocContext implements IocContext {
                     Object value = convertService.convert(String.class, field.getType(), beanField.getValue());
                     Reflect.setFieldValue(beanInstance, field, value);
                 } else if (BeanField.TYPE_REFERENCE.equals(beanField.getType())) {
-
+                    // 添加一个虚拟引用
                 }
             }
 
