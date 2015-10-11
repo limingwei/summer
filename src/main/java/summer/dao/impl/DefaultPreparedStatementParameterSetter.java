@@ -17,7 +17,7 @@ public class DefaultPreparedStatementParameterSetter implements PreparedStatemen
             try {
                 Object value = parameters[i];
                 if (null == value) {
-                    preparedStatement.setNull(i, Types.NULL); // TODO 类型不对 
+                    preparedStatement.setNull(i, Types.NULL); // TODO 类型不对
                 } else if (value instanceof Integer) {
                     preparedStatement.setInt(i, ((Integer) value).intValue());
                 } else if (int.class.equals(value.getClass())) {

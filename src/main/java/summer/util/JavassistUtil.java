@@ -17,7 +17,7 @@ import javassist.compiler.Javac.CtFieldWithInit;
  * @version 1 (2015年10月11日 上午9:56:59)
  * @since Java7
  */
-public class Javassist {
+public class JavassistUtil {
     public static Class<?> ctClassToClass(CtClass ctClass) {
         try {
             return ctClass.toClass();
@@ -54,7 +54,7 @@ public class Javassist {
         try {
             return CtNewMethod.make(src, declaring);
         } catch (CannotCompileException e) {
-            throw new RuntimeException("src="+src,e);
+            throw new RuntimeException("src=" + src, e);
         }
     }
 

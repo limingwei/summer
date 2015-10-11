@@ -7,21 +7,16 @@ import summer.ioc.IocContext;
 
 /**
  * @author li
- * @version 1 (2015年10月10日 下午12:06:34)
+ * @version 1 (2015年10月11日 下午5:43:24)
  * @since Java7
  */
 @SuppressWarnings("unchecked")
-public class CachedIocContext implements IocContext {
+public abstract class AbstractSummerIocContext implements IocContext {
     private Map<Class<?>, Object> cacheByTypeMap = new HashMap<Class<?>, Object>();
 
     private Map<String, Object> cacheByIdMap = new HashMap<String, Object>();
+
     private Map<String, Object> cacheByTypeAndIdMap = new HashMap<String, Object>();
-
-    private IocContext iocContext;
-
-    public CachedIocContext(IocContext iocContext) {
-        this.iocContext = iocContext;
-    }
 
     public <T> T getBean(Class<T> type) {
         Object beanInstance = cacheByTypeMap.get(type);
@@ -29,7 +24,7 @@ public class CachedIocContext implements IocContext {
             synchronized (cacheByTypeMap) {
                 beanInstance = cacheByTypeMap.get(type);
                 if (null == beanInstance) {
-                    T instance = iocContext.getBean(type);
+                    T instance = doGetBean(type);
                     cacheByTypeMap.put(type, instance);
                     beanInstance = instance;
                 }
@@ -44,7 +39,7 @@ public class CachedIocContext implements IocContext {
             synchronized (cacheByTypeAndIdMap) {
                 beanInstance = cacheByTypeAndIdMap.get(type + "," + id);
                 if (null == beanInstance) {
-                    T instance = iocContext.getBean(type, id);
+                    T instance = doGetBean(type, id);
                     cacheByTypeAndIdMap.put(type + "," + id, instance);
                     beanInstance = instance;
                 }
@@ -59,7 +54,7 @@ public class CachedIocContext implements IocContext {
             synchronized (cacheByIdMap) {
                 beanInstance = cacheByIdMap.get(id);
                 if (null == beanInstance) {
-                    Object instance = iocContext.getBean(id);
+                    Object instance = doGetBean(id);
                     cacheByIdMap.put(id, instance);
                     beanInstance = instance;
                 }
@@ -67,4 +62,10 @@ public class CachedIocContext implements IocContext {
         }
         return beanInstance;
     }
+
+    public abstract Object doGetBean(String id);
+
+    public abstract <T> T doGetBean(Class<T> type);
+
+    public abstract <T> T doGetBean(Class<T> type, String id);
 }
