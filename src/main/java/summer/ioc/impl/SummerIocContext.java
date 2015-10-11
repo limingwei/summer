@@ -13,6 +13,7 @@ import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocContext;
 import summer.ioc.IocLoader;
+import summer.ioc.ReferenceType;
 import summer.ioc.SummerCompiler;
 import summer.ioc.compiler.JavassistSummerCompiler;
 import summer.log.Logger;
@@ -25,6 +26,7 @@ import summer.util.Reflect;
  * @version 1 (2015年10月10日 上午10:33:37)
  * @since Java7
  */
+@SuppressWarnings("unchecked")
 public class SummerIocContext implements IocContext {
     private static final Logger log = Log.slf4j();
 
@@ -57,7 +59,6 @@ public class SummerIocContext implements IocContext {
         log.info("SummerIocContext init, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
     }
 
-    @SuppressWarnings("unchecked")
     public <T> T getBean(Class<T> type) {
         BeanDefinition beanDefinition = findMatchBeanDefinition(type);
         Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", beanDefinitions=" + beanDefinitions);
@@ -74,12 +75,15 @@ public class SummerIocContext implements IocContext {
             Object beanInstance = newBeanInstance(beanType);
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
-                if (BeanField.TYPE_PROPERTY_VALUE.equals(beanField.getType())) {
+                if (BeanField.INJECT_TYPE_VALUE.equals(beanField.getInjectType())) {
                     Field field = Reflect.getField(beanType, beanField.getName());
                     Object value = convertService.convert(String.class, field.getType(), beanField.getValue());
                     Reflect.setFieldValue(beanInstance, field, value);
-                } else if (BeanField.TYPE_REFERENCE.equals(beanField.getType())) {
-                    // 添加一个虚拟引用
+                } else if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) {
+                    Field field = Reflect.getField(beanType, beanField.getName());
+                    ReferenceType value = (ReferenceType) newReferenceInstance(beanDefinition, beanField);
+                    value.setIocContext(this);
+                    Reflect.setFieldValue(beanInstance, field, value);
                 }
             }
 
@@ -89,14 +93,22 @@ public class SummerIocContext implements IocContext {
         return instance;
     }
 
-    private Object newBeanInstance(Class<?> beanType) {
-        if (Modifier.isFinal(beanType.getModifiers())) {
-            log.warn("type {} is final, can not aop", beanType);
-            return Reflect.newInstance(beanType);
-        } else {
-            Class<?> type = summerCompiler.compile(beanType);
-            return Reflect.newInstance(type);
+    public <T> T getBean(Class<T> type, String id) {
+        BeanDefinition beanDefinition = findMatchBeanDefinition(type, id);
+        Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", id=" + id + ", beanDefinitions=" + beanDefinitions);
+
+        return (T) getBeanInstance(beanDefinition);
+    }
+
+    public BeanDefinition findMatchBeanDefinition(Class<?> type, String id) {
+        Assert.noEmpty(id,"id 不可以为空");
+
+        for (BeanDefinition beanDefinition : beanDefinitions) {
+            if (type.isAssignableFrom(beanDefinition.getBeanType()) && id.equals(beanDefinition.getId())) {
+                return beanDefinition;
+            }
         }
+        return null;
     }
 
     public BeanDefinition findMatchBeanDefinition(Class<?> type) {
@@ -108,8 +120,19 @@ public class SummerIocContext implements IocContext {
         return null;
     }
 
-    public <T> T getBean(Class<T> type, String name) {
-        return null;
+    private Object newReferenceInstance(BeanDefinition beanDefinition, BeanField beanField) {
+        Class<?> type = summerCompiler.compileReferenceType(beanDefinition, beanField);
+        return Reflect.newInstance(type);
+    }
+
+    private Object newBeanInstance(Class<?> beanType) {
+        if (Modifier.isFinal(beanType.getModifiers())) {
+            log.warn("type {} is final, can not aop", beanType);
+            return Reflect.newInstance(beanType);
+        } else {
+            Class<?> type = summerCompiler.compile(beanType);
+            return Reflect.newInstance(type);
+        }
     }
 
     public Object getBean(String name) {

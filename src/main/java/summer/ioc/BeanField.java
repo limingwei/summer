@@ -1,33 +1,34 @@
 package summer.ioc;
 
+
 /**
  * @author li
  * @version 1 (2015年10月10日 下午2:21:20)
  * @since Java7
  */
 public class BeanField {
-    public static final String TYPE_PROPERTY_VALUE = "property_value";
+    public static final String INJECT_TYPE_VALUE = "inject_type_value";
 
-    public static final String TYPE_REFERENCE = "reference";
+    public static final String INJECT_TYPE_REFERENCE = "inject_type_reference";
 
-    private String type;
+    private String injectType;
 
     private String name;
 
     private String value;
 
-    public BeanField(String type, String name, String value) {
-        this.type = type;
+    public BeanField(String injectType, String name, String value) {
+        this.injectType = injectType;
         this.name = name;
         this.value = value;
     }
 
-    public String getType() {
-        return type;
+    public String getInjectType() {
+        return injectType;
     }
 
-    public void setType(String type) {
-        this.type = type;
+    public void setInjectType(String injectType) {
+        this.injectType = injectType;
     }
 
     public String getName() {

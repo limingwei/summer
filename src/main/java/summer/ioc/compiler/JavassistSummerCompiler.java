@@ -1,13 +1,19 @@
 package summer.ioc.compiler;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.CtMethod;
+import summer.ioc.BeanDefinition;
+import summer.ioc.BeanField;
+import summer.ioc.ReferenceType;
 import summer.ioc.SummerCompiler;
 import summer.util.Javassist;
+import summer.util.Reflect;
 import summer.util.Stream;
 
 /**
@@ -17,6 +23,57 @@ import summer.util.Stream;
  */
 // com.alibaba.dubbo.common.compiler.support.JavassistCompiler
 public class JavassistSummerCompiler implements SummerCompiler {
+    public Class<?> compileReferenceType(BeanDefinition beanDefinition, BeanField beanField) {
+        Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
+
+        Class<?> fieldType = field.getType();
+        String fieldTypeName = fieldType.getName();
+
+        ClassPool classPool = ClassPool.getDefault();
+
+        String subClassName = fieldTypeName + "_JavassistSummerCompiler_Reference";
+        CtClass ctClass = classPool.makeClass(subClassName);
+        CtClass fieldTypeCtClass = Javassist.getCtClass(classPool, fieldTypeName);
+        if (fieldType.isInterface()) {
+            ctClass.addInterface(fieldTypeCtClass);
+        } else {
+            Javassist.setSuperclass(ctClass, fieldTypeCtClass);
+        }
+
+        // ReferenceType
+        CtClass referenceTypeCtClass = Javassist.getCtClass(classPool, ReferenceType.class.getName());
+        ctClass.addInterface(referenceTypeCtClass);
+
+        addIocContextField(ctClass);
+        addIocContextFieldSetter(ctClass);
+
+        List<Method> methods = CompilerUtil.getOriginalPublicMethods(fieldType);
+        for (Method method : methods) {
+            // makeCallDelegateOverrideMethod
+            makeCallDelegateOverrideMethod(ctClass, method, beanDefinition, beanField);
+        }
+
+        Javassist.ctClassToBytecode(ctClass, Stream.newFileOutputStream("/classes/" + subClassName + ".class"));
+        return Javassist.ctClassToClass(ctClass);
+    }
+
+    private void addIocContextField(CtClass ctClass) {
+        CtField ctField = Javassist.ctFieldWithInitMake("private summer.ioc.IocContext iocContext; ", ctClass);
+        Javassist.ctClassAddField(ctClass, ctField);
+    }
+
+    private void addIocContextFieldSetter(CtClass ctClass) {
+        String iocContextFieldSetterSrc = "public void setIocContext(summer.ioc.IocContext iocContext) { this.iocContext=iocContext; } ";
+        CtMethod iocContextFieldSetter = Javassist.ctNewMethodMake(iocContextFieldSetterSrc, ctClass);
+        Javassist.ctClassAddMethod(ctClass, iocContextFieldSetter);
+    }
+
+    private void makeCallDelegateOverrideMethod(CtClass ctClass, Method method, BeanDefinition beanDefinition, BeanField beanField) {
+        String callDelegateOverrideMethodSrc = JavassistSummerCompilerUtil.makeCallDelegateOverrideMethod(method, beanDefinition, beanField);
+        CtMethod callDelegateOverrideMethod = Javassist.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
+        Javassist.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
+    }
+
     public Class<?> compile(Class<?> originalType) {
         String originalTypeName = originalType.getName();
 
@@ -25,10 +82,8 @@ public class JavassistSummerCompiler implements SummerCompiler {
         classPool.importPackage("summer.aop.AopFilter");
         classPool.importPackage("summer.aop.Invoker");
         classPool.importPackage("summer.aop.AopChain");
-        classPool.importPackage("java.util.Map");
-        classPool.importPackage("java.util.HashMap");
 
-        String subClassName = originalTypeName + "$JavassistSummerCompiler";
+        String subClassName = originalTypeName + "_JavassistSummerCompiler_Aop";
         CtClass ctClass = classPool.makeClass(subClassName);
         CtClass superCtClass = Javassist.getCtClass(classPool, originalTypeName);
         Javassist.setSuperclass(ctClass, superCtClass);
@@ -62,9 +117,20 @@ public class JavassistSummerCompiler implements SummerCompiler {
         Javassist.setSuperclass(invokerCtClass, invokerSuperCtClass);
 
         Class<?>[] parameterTypes = method.getParameterTypes();
-        String invokerCtMethodSrc = "public Object invoke() { return ((" + subClassName + ")getTarget()).super$" + method.getName() + "(" + JavassistSummerCompilerUtil.invokerArguments(parameterTypes) + ");" + " } ";
+        String invokerCtMethodSrc = "public Object invoke() { ";//
+        String invokeSuperStatement = "((" + subClassName + ")getTarget()).super_" + method.getName() + "(" + JavassistSummerCompilerUtil.invokerArguments(parameterTypes) + ");";
+
+        if ("void".equals(method.getReturnType().getName())) {
+            invokerCtMethodSrc += invokeSuperStatement;
+            invokerCtMethodSrc += "return null; ";
+        } else {
+            invokerCtMethodSrc += " return " + invokeSuperStatement;
+        }
+
+        invokerCtMethodSrc += " } ";
         CtMethod invokerCtMethod = Javassist.ctNewMethodMake(invokerCtMethodSrc, invokerCtClass);
         Javassist.ctClassAddMethod(invokerCtClass, invokerCtMethod);
+
         Javassist.ctClassToBytecode(invokerCtClass, Stream.newFileOutputStream("/classes/" + methodInvokerTypeName + ".class"));
         Javassist.ctClassToClass(invokerCtClass);
     }

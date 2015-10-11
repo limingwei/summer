@@ -14,6 +14,9 @@ import summer.ioc.IocContext;
 public class CachedIocContext implements IocContext {
     private Map<Class<?>, Object> cacheByTypeMap = new HashMap<Class<?>, Object>();
 
+    private Map<String, Object> cacheByIdMap = new HashMap<String, Object>();
+    private Map<String, Object> cacheByTypeAndIdMap = new HashMap<String, Object>();
+
     private IocContext iocContext;
 
     public CachedIocContext(IocContext iocContext) {
@@ -36,10 +39,32 @@ public class CachedIocContext implements IocContext {
     }
 
     public <T> T getBean(Class<T> type, String id) {
-        return iocContext.getBean(type, id);
+        Object beanInstance = cacheByTypeAndIdMap.get(type + "," + id);
+        if (null == beanInstance) {
+            synchronized (cacheByTypeAndIdMap) {
+                beanInstance = cacheByTypeAndIdMap.get(type + "," + id);
+                if (null == beanInstance) {
+                    T instance = iocContext.getBean(type, id);
+                    cacheByTypeAndIdMap.put(type + "," + id, instance);
+                    beanInstance = instance;
+                }
+            }
+        }
+        return (T) beanInstance;
     }
 
     public Object getBean(String id) {
-        return iocContext.getBean(id);
+        Object beanInstance = cacheByIdMap.get(id);
+        if (null == beanInstance) {
+            synchronized (cacheByIdMap) {
+                beanInstance = cacheByIdMap.get(id);
+                if (null == beanInstance) {
+                    Object instance = iocContext.getBean(id);
+                    cacheByIdMap.put(id, instance);
+                    beanInstance = instance;
+                }
+            }
+        }
+        return beanInstance;
     }
 }

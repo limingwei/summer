@@ -61,10 +61,10 @@ public class XmlIocLoader implements IocLoader {
 
             if (name.startsWith("p:")) {
                 String fieldName = name.substring(2);
-                beanFields.add(new BeanField(BeanField.TYPE_PROPERTY_VALUE, fieldName, value));
+                beanFields.add(new BeanField(BeanField.INJECT_TYPE_VALUE, fieldName, value));
             } else if (name.startsWith("ref:")) {
                 String fieldName = name.substring(4);
-                beanFields.add(new BeanField(BeanField.TYPE_REFERENCE, fieldName, value));
+                beanFields.add(new BeanField(BeanField.INJECT_TYPE_REFERENCE, fieldName, value));
             }
         }
 

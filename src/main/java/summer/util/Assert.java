@@ -6,11 +6,19 @@ package summer.util;
  * @since Java7
  */
 public class Assert {
-    public static <T> T noNull(T target, String message) {
-        if (null == target) {
+    public static <T> T noNull(T value, String message) {
+        if (null == value) {
             throw new RuntimeException(message);
         } else {
-            return target;
+            return value;
+        }
+    }
+
+    public static String noEmpty(String value, String message) {
+        if (null == value || value.isEmpty()) {
+            throw new RuntimeException(message);
+        } else {
+            return value;
         }
     }
 }
