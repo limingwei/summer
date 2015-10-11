@@ -3,8 +3,6 @@ package summer.aop;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import summer.util.Reflect;
-
 /**
  * @author li
  * @version 1 (2015年10月10日 下午10:50:55)
@@ -40,6 +38,8 @@ public class AopChain {
      * AopFilter索引,指示当前执行到filter链中的第几个filter
      */
     private int index = 0;
+
+    private Invoker invoker;
 
     /**
      * 返回被代理方法宿主对象
@@ -88,11 +88,12 @@ public class AopChain {
     /**
      * 初始化一个AopChain
      */
-    public AopChain(Object target, Method method, Object[] args, List<AopFilter> filters) {
+    public AopChain(Object target, Method method, Object[] args, List<AopFilter> filters, Invoker invoker) {
         this.target = target;
         this.method = method;
         this.args = args;
         this.filters = filters;
+        this.invoker = invoker;
     }
 
     /**
@@ -112,7 +113,8 @@ public class AopChain {
      */
     public AopChain invoke() {
         try {
-            this.result = Reflect.invokeMethod(target, method, args);
+            // this.result = Reflect.invokeMethod(target, method, args);
+            this.result = invoker.setArgs(getArgs()).invoke();
         } catch (Throwable e) {
             throw new RuntimeException(e + " ", e);
         }

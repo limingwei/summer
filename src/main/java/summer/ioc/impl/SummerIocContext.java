@@ -1,6 +1,7 @@
 package summer.ioc.impl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -10,8 +11,10 @@ import summer.converter.ConvertService;
 import summer.converter.impl.SummerConvertService;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
+import summer.ioc.SummerCompiler;
 import summer.ioc.IocContext;
 import summer.ioc.IocLoader;
+import summer.ioc.compiler.JavassistSummerCompiler;
 import summer.log.Logger;
 import summer.util.Assert;
 import summer.util.Log;
@@ -33,6 +36,8 @@ public class SummerIocContext implements IocContext {
 
     private ConvertService convertService;
 
+    private SummerCompiler summerCompiler;
+
     public IocLoader getIocLoader() {
         return iocLoader;
     }
@@ -47,6 +52,8 @@ public class SummerIocContext implements IocContext {
 
         this.beanInstances = new HashMap<BeanDefinition, Object>();
 
+        this.summerCompiler = new JavassistSummerCompiler();
+
         log.info("SummerIocContext init, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
     }
 
@@ -60,11 +67,12 @@ public class SummerIocContext implements IocContext {
 
     public synchronized Object getBeanInstance(BeanDefinition beanDefinition) {
         Object instance = beanInstances.get(beanDefinition);
-        if (null == instance) {
+        if (null == instance) { // 延迟初始化
             Class<?> beanType = beanDefinition.getBeanType();
 
             // TODO 先生成代理, 代理加上Aop, 延迟到调用时候再实例化
-            Object beanInstance = Reflect.newInstance(beanType);
+
+            Object beanInstance = newBeanInstance(beanType);
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
                 if (BeanField.TYPE_PROPERTY_VALUE.equals(beanField.getType())) {
@@ -80,6 +88,16 @@ public class SummerIocContext implements IocContext {
             instance = beanInstance;
         }
         return instance;
+    }
+
+    private Object newBeanInstance(Class<?> beanType) {
+        if (Modifier.isFinal(beanType.getModifiers())) {
+            log.warn("type {} is final, can not aop", beanType);
+            return Reflect.newInstance(beanType);
+        } else {
+            Class<?> type = summerCompiler.compile(beanType);
+            return Reflect.newInstance(type);
+        }
     }
 
     public BeanDefinition findMatchBeanDefinition(Class<?> type) {
