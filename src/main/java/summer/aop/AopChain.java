@@ -4,7 +4,7 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import summer.util.ListUtil;
-import summer.util.Reflect;
+import summer.util.StringUtil;
 
 /**
  * @author li
@@ -32,17 +32,17 @@ public class AopChain {
      */
     private Object result;
 
+    private Invoker invoker;
+
     /**
      * AopFilter列表
      */
-    private List<AopFilter> filters;
+    private List<AopFilter> _filters;
 
     /**
      * AopFilter索引,指示当前执行到filter链中的第几个filter
      */
-    private int index = 0;
-
-    private Invoker invoker;
+    private int _index = 0;
 
     public Invoker getInvoker() {
         return invoker;
@@ -65,7 +65,7 @@ public class AopChain {
     public Method getMethod() {
         return this.method;
     }
-
+    
     /**
      * 返回方法参数
      */
@@ -103,7 +103,7 @@ public class AopChain {
         this.target = target;
         this.method = method;
         this.args = args;
-        this.filters = filters;
+        this._filters = filters;
         this.invoker = invoker;
     }
 
@@ -115,10 +115,10 @@ public class AopChain {
      * 执行AopChain,执行下一个AopFilter或者执行被代理方法
      */
     public AopChain doFilter() {
-        if (null == filters || index >= filters.size()) {// 如果没有AopFilter或者已经经过全部AopFilter
+        if (null == _filters || _index >= _filters.size()) {// 如果没有AopFilter或者已经经过全部AopFilter
             invoke();// 执行目标方法
         } else {// 还有AopFilter
-            filters.get(index++).doFilter(this);// 执行第index个AopFilter然后index++
+            _filters.get(_index++).doFilter(this);// 执行第index个AopFilter然后index++
         }
         return this;
     }
@@ -128,14 +128,14 @@ public class AopChain {
      */
     public AopChain invoke() {
         try {
-            if (null == getInvoker()) {
-                setResult(Reflect.invokeMethod(getTarget(), getMethod(), getArgs()));
-            } else {
-                setResult(getInvoker().setArgs(getArgs()).invoke());
-            }
+            setResult(getInvoker().setArgs(getArgs()).invoke());
         } catch (Throwable e) {
             throw new RuntimeException(e + " ", e);
         }
         return this;
+    }
+
+    public String toString() {
+        return super.toString() + ", target=" + getTarget() + ", method=" + getMethod() + ", args=[" + StringUtil.join(getArgs(), ", ") + "], result=" + getResult() + ", invoker=" + getInvoker() + ", filters=" + _filters + ", index=" + _index;
     }
 }

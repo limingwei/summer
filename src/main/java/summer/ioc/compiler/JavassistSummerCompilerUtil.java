@@ -2,6 +2,8 @@ package summer.ioc.compiler;
 
 import java.lang.reflect.Method;
 
+import summer.ioc.MethodPool;
+
 /**
  * @author li
  * @version 1 (2015年10月11日 上午10:30:55)
@@ -12,22 +14,29 @@ public class JavassistSummerCompilerUtil {
         Class<?>[] parameterTypes = method.getParameterTypes();
         String returnTypeName = method.getReturnType().getName();
 
-        String src = "public " + returnTypeName + " " + method.getName() + "(" + parameters(parameterTypes) + ")" + "{";
+        String methodSignature = "public " + returnTypeName + " " + method.getName() + "(" + parameters(parameterTypes) + ")";
+        MethodPool.put(methodSignature, method);
+
+        String src = methodSignature + "{";
         src += method.getDeclaringClass().getName() + " target = this;";
-        src += "Method method = null;"; // 不可为空
+        src += "Method method = summer.ioc.MethodPool.get(\"" + methodSignature + "\");"; // 不可为空
+
         if (0 == parameterTypes.length) {
             src += "Object[] args = new Object[0];";
-        }else {
+        } else {
             src += "Object[] args = new Object[] { " + arguments(parameterTypes) + " } ;";
         }
-        src += "AopFilter[] filters = new AopFilter[]{new summer.aop.AopFilter111()};";
+
+        src += "AopFilter[] filters = new AopFilter[]{new summer.aop.LoggerAopFilter()};";
         src += "Invoker invoker = new " + methodInvokerTypeName(method) + "();";
         src += "invoker.setTarget(target);";
+        
         if ("void".equals(returnTypeName)) {
             src += "new AopChain(target, method, args, filters, invoker).doFilter().getResult();";
         } else {
             src += "return (" + returnTypeName + ")new AopChain(target, method, args, filters, invoker).doFilter().getResult();";
         }
+
         src += "}";
         return src;
     }
