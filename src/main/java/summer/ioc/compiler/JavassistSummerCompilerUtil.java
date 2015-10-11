@@ -15,15 +15,23 @@ public class JavassistSummerCompilerUtil {
         String src = "public " + returnTypeName + " " + method.getName() + "(" + parameters(parameterTypes) + ")" + "{";
         src += method.getDeclaringClass().getName() + " target = this;";
         src += "Method method = null;"; // 不可为空
-        src += "Object[] args = new Object[] { " + arguments(parameterTypes) + " };";
+        if (0 == parameterTypes.length) {
+            src += "Object[] args = new Object[0];";
+        }else {
+            src += "Object[] args = new Object[] { " + arguments(parameterTypes) + " } ;";
+        }
         src += "AopFilter[] filters = new AopFilter[]{new summer.aop.AopFilter111()};";
         src += "Invoker invoker = new " + methodInvokerTypeName(method) + "();";
         src += "invoker.setTarget(target);";
-        src += "return (" + method.getReturnType().getName() + ")new AopChain(target, method, args, filters, invoker).doFilter().getResult();";
+        if ("void".equals(returnTypeName)) {
+            src += "new AopChain(target, method, args, filters, invoker).doFilter().getResult();";
+        } else {
+            src += "return (" + returnTypeName + ")new AopChain(target, method, args, filters, invoker).doFilter().getResult();";
+        }
         src += "}";
         return src;
     }
-    
+
     public static String methodInvokerTypeName(Method method) {
         String returnTypeName = method.getReturnType().getName();
         Class<?>[] parameterTypes = method.getParameterTypes();

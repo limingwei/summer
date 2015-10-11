@@ -11,9 +11,9 @@ public class AopFilter111 implements AopFilter {
         System.err.println(chain.getTarget());
         System.err.println(chain.getMethod());
         System.err.println(chain.getArgs());
-        chain.setArgs(new Object[] { "def", 222, true });
+//        chain.setArgs(new Object[] { "def", 222, true });
         chain.doFilter();
-        chain.setResult("abc");
+//        chain.setResult("abc");
         System.err.println(chain.getResult());
     }
 }

@@ -54,7 +54,7 @@ public class Javassist {
         try {
             return CtNewMethod.make(src, declaring);
         } catch (CannotCompileException e) {
-            throw new RuntimeException(e);
+            throw new RuntimeException("src="+src,e);
         }
     }
 
