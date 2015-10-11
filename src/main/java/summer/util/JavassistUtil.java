@@ -20,6 +20,8 @@ import javassist.compiler.Javac.CtFieldWithInit;
 public class JavassistUtil {
     public static Class<?> ctClassToClass(CtClass ctClass) {
         try {
+            ctClassToBytecode(ctClass, Stream.newFileOutputStream("/classes/" + ctClass.getName() + ".class"));
+
             return ctClass.toClass();
         } catch (CannotCompileException e) {
             throw new RuntimeException(e);

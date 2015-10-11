@@ -14,6 +14,7 @@ import summer.ioc.BeanField;
 import summer.ioc.IocLoader;
 import summer.ioc.ReferenceType;
 import summer.ioc.SummerCompiler;
+import summer.ioc.compiler.CachedSummerCompiler;
 import summer.ioc.compiler.JavassistSummerCompiler;
 import summer.log.Logger;
 import summer.util.Assert;
@@ -53,7 +54,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         this.beanInstances = new HashMap<BeanDefinition, Object>();
 
-        this.summerCompiler = new JavassistSummerCompiler();
+        this.summerCompiler = new CachedSummerCompiler(new JavassistSummerCompiler());
 
         log.info("SummerIocContext init, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
     }
@@ -137,7 +138,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
     }
 
     private Object newReferenceInstance(BeanDefinition beanDefinition, BeanField beanField) {
-        Class<?> type = summerCompiler.compileReferenceType(beanDefinition, beanField);
+        Class<?> type = summerCompiler.compileReference(beanDefinition, beanField);
         return Reflect.newInstance(type);
     }
 
@@ -146,7 +147,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
             log.warn("type {} is final, can not aop", beanType);
             return Reflect.newInstance(beanType);
         } else {
-            Class<?> type = summerCompiler.compile(beanType);
+            Class<?> type = summerCompiler.compileClass(beanType);
             return Reflect.newInstance(type);
         }
     }

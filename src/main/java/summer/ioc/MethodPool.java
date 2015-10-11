@@ -12,11 +12,11 @@ import java.util.Map;
 public class MethodPool {
     private static final Map<String, Method> METHOD_MAP = new HashMap<String, Method>();
 
-    public static void put(String methodSignature, Method method) {
+    public static void putMethod(String methodSignature, Method method) {
         METHOD_MAP.put(methodSignature, method);
     }
 
-    public static Method get(String methodSignature) {
+    public static Method getMethod(String methodSignature) {
         return METHOD_MAP.get(methodSignature);
     }
 }

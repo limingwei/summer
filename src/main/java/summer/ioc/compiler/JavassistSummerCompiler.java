@@ -22,7 +22,7 @@ import summer.util.Reflect;
  */
 // com.alibaba.dubbo.common.compiler.support.JavassistCompiler
 public class JavassistSummerCompiler implements SummerCompiler {
-    public Class<?> compileReferenceType(BeanDefinition beanDefinition, BeanField beanField) {
+    public Class<?> compileReference(BeanDefinition beanDefinition, BeanField beanField) {
         Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
 
         Class<?> fieldType = field.getType();
@@ -46,14 +46,42 @@ public class JavassistSummerCompiler implements SummerCompiler {
         addIocContextField(ctClass);
         addIocContextFieldSetter(ctClass);
 
+        addReferenceTargetField(ctClass);
+        addReferenceTargetFieldGetter(ctClass, beanDefinition, beanField);
+
         List<Method> methods = CompilerUtil.getOriginalPublicMethods(fieldType);
         for (Method method : methods) {
             // makeCallDelegateOverrideMethod
             makeCallDelegateOverrideMethod(ctClass, method, beanDefinition, beanField);
         }
 
-        // JavassistUtil.ctClassToBytecode(ctClass, Stream.newFileOutputStream("/classes/" + subClassName + ".class"));
         return JavassistUtil.ctClassToClass(ctClass);
+    }
+
+    private void addReferenceTargetField(CtClass ctClass) {
+        CtField ctField = JavassistUtil.ctFieldWithInitMake("private java.lang.Object referenceTarget; ", ctClass);
+        JavassistUtil.ctClassAddField(ctClass, ctField);
+    }
+
+    private void addReferenceTargetFieldGetter(CtClass ctClass, BeanDefinition beanDefinition, BeanField beanField) {
+        String referenceTargetFieldGetterSrc = "public java.lang.Object getReferenceTarget() { ";
+        referenceTargetFieldGetterSrc += " if(null==this.referenceTarget) { ";
+
+        Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
+        Class<?> fieldType = field.getType();
+        String beanFieldValue = beanField.getValue();
+        if (null == beanFieldValue || beanFieldValue.isEmpty()) {
+            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class);";
+        } else {
+            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class,\"" + beanFieldValue + "\");";
+        }
+
+        referenceTargetFieldGetterSrc += " } ";
+        referenceTargetFieldGetterSrc += " return this.referenceTarget; ";
+        referenceTargetFieldGetterSrc += " } ";
+
+        CtMethod iocContextFieldSetter = JavassistUtil.ctNewMethodMake(referenceTargetFieldGetterSrc, ctClass);
+        JavassistUtil.ctClassAddMethod(ctClass, iocContextFieldSetter);
     }
 
     private void addIocContextField(CtClass ctClass) {
@@ -73,7 +101,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
         JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
     }
 
-    public Class<?> compile(Class<?> originalType) {
+    public Class<?> compileClass(Class<?> originalType) {
         String originalTypeName = originalType.getName();
 
         ClassPool classPool = ClassPool.getDefault();
@@ -99,7 +127,6 @@ public class JavassistSummerCompiler implements SummerCompiler {
             makeOverrideMethod(ctClass, method);
         }
 
-        // JavassistUtil.ctClassToBytecode(ctClass, Stream.newFileOutputStream("/classes/" + subClassName + ".class"));
         return JavassistUtil.ctClassToClass(ctClass);
     }
 
@@ -121,7 +148,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
 
         if ("void".equals(method.getReturnType().getName())) {
             invokerCtMethodSrc += invokeSuperStatement;
-            invokerCtMethodSrc += "return null; ";
+            invokerCtMethodSrc += "return null;";
         } else {
             invokerCtMethodSrc += " return " + invokeSuperStatement;
         }
@@ -130,7 +157,6 @@ public class JavassistSummerCompiler implements SummerCompiler {
         CtMethod invokerCtMethod = JavassistUtil.ctNewMethodMake(invokerCtMethodSrc, invokerCtClass);
         JavassistUtil.ctClassAddMethod(invokerCtClass, invokerCtMethod);
 
-        // JavassistUtil.ctClassToBytecode(invokerCtClass, Stream.newFileOutputStream("/classes/" + methodInvokerTypeName + ".class"));
         JavassistUtil.ctClassToClass(invokerCtClass);
     }
 

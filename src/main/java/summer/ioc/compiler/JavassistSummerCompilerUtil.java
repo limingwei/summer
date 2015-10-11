@@ -23,7 +23,7 @@ public class JavassistSummerCompilerUtil {
         String returnTypeName = method.getReturnType().getName();
 
         String methodSignature = "public " + returnTypeName + " " + method.getName() + "(" + parameters(parameterTypes) + ")";
-        MethodPool.put(method.getDeclaringClass().getName() + " " + methodSignature, method);
+        MethodPool.putMethod(method.getDeclaringClass().getName() + " " + methodSignature, method);
         String src = methodSignature + "{";
 
         if (0 == parameterTypes.length) {
@@ -36,7 +36,7 @@ public class JavassistSummerCompilerUtil {
         src += "Invoker invoker = new " + methodInvokerTypeName(method) + "();";
         src += "invoker.setTarget(this);";
 
-        src += "Method method = summer.ioc.MethodPool.get(\"" + method.getDeclaringClass().getName() + " " + methodSignature + "\");"; // 不可为空
+        src += "Method method = summer.ioc.MethodPool.getMethod(\"" + method.getDeclaringClass().getName() + " " + methodSignature + "\");"; // 不可为空
 
         if ("void".equals(returnTypeName)) {
             src += "new AopChain(this, method, args, filters, invoker).doFilter();";
@@ -81,23 +81,17 @@ public class JavassistSummerCompilerUtil {
     }
 
     public static String makeCallDelegateOverrideMethod(Method method, BeanDefinition beanDefinition, BeanField beanField) {
-        String getBeanStatement;
+
         Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
         Class<?> fieldType = field.getType();
-        String beanFieldValue = beanField.getValue();
-        if (null == beanFieldValue || beanFieldValue.isEmpty()) {
-            getBeanStatement = "((" + fieldType.getName() + ")iocContext.getBean(" + fieldType.getName() + ".class))";
-        } else {
-            getBeanStatement = "((" + fieldType.getName() + ")iocContext.getBean(" + fieldType.getName() + ".class,\"" + beanFieldValue + "\"))";
-        }
 
         Class<?>[] parameterTypes = method.getParameterTypes();
         String src = "public " + method.getReturnType().getName() + " " + method.getName() + "(" + parameters(parameterTypes) + "){";
 
         if ("void".equals(method.getReturnType().getName())) {
-            src += getBeanStatement + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
+            src += "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
         } else {
-            src += "return " + getBeanStatement + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
+            src += "return " + "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
         }
 
         src += "}";
