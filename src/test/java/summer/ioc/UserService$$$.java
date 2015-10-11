@@ -1,11 +1,7 @@
 package summer.ioc;
 
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-
-import com.alibaba.dubbo.common.json.JSON;
 
 import summer.aop.AopChain;
 import summer.aop.AopFilter;
@@ -19,19 +15,10 @@ import summer.aop.Invoker;
 public class UserService$$$ extends UserServiceImpl {
     public String sayHi(String str, Integer integer) {
         Object target = this;
-        Method method = null;
         Object[] args = new Object[] { str, integer };
 
-        AopFilter aopFilter = new AopFilter() {
-            public void doFilter(AopChain chain) {
-                System.err.println("before args=" + chain.getArgs());
-                chain.getArgs()[1] = "55555";
-                chain.doFilter();
-                System.err.println("after result=" + chain.getResult());
-            }
-        };
-
-        List<AopFilter> filters = new ArrayList<AopFilter>(Arrays.asList(aopFilter));
+        Method method = getMethod();
+        List<AopFilter> filters = getAopFilters(method);
 
         Invoker invoker = new Invoker() {
             public Object invoke() {
@@ -41,6 +28,14 @@ public class UserService$$$ extends UserServiceImpl {
         };
 
         return (String) new AopChain(target, method, args, filters, invoker).doFilter().getResult();
+    }
+
+    private Method getMethod() {
+        return null;
+    }
+
+    private List<AopFilter> getAopFilters(Method method) {
+        return null;
     }
 
     public String super$sayHi(String str, Integer integer) {

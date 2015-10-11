@@ -21,22 +21,45 @@ public class JavassistSummerCompiler implements SummerCompiler {
         String originalTypeName = originalType.getName();
 
         ClassPool classPool = ClassPool.getDefault();
-        CtClass ctClass = classPool.makeClass(originalTypeName + "$JavassistSummerCompiler");
+        classPool.importPackage("java.lang.reflect.Method");
+        classPool.importPackage("summer.aop.AopFilter");
+        classPool.importPackage("summer.aop.Invoker");
+        classPool.importPackage("summer.aop.AopChain");
+        classPool.importPackage("java.util.Map");
+        classPool.importPackage("java.util.HashMap");
+
+        String subClassName = originalTypeName + "$JavassistSummerCompiler";
+        CtClass ctClass = classPool.makeClass(subClassName);
         CtClass superCtClass = Javassist.getCtClass(classPool, originalTypeName);
         Javassist.setSuperclass(ctClass, superCtClass);
 
         List<Method> methods = CompilerUtil.getOriginalPublicMethods(originalType);
         for (Method method : methods) {
+            // make callSuperMethod
             String callSuperMethodSrc = JavassistSummerCompilerUtil.makeCallSuperMethodSrc(method);
             CtMethod callSuperMethod = Javassist.ctNewMethodMake(callSuperMethodSrc, ctClass);
             Javassist.ctClassAddMethod(ctClass, callSuperMethod);
 
+            // make invoker class
+            String methodInvokerTypeName = JavassistSummerCompilerUtil.methodInvokerTypeName(method);
+            CtClass invokerCtClass = classPool.makeClass(methodInvokerTypeName);
+            CtClass invokerSuperCtClass = Javassist.getCtClass(classPool, "summer.aop.Invoker");
+            Javassist.setSuperclass(invokerCtClass, invokerSuperCtClass);
+
+            Class<?>[] parameterTypes = method.getParameterTypes();
+            String invokerCtMethodSrc = "public Object invoke() { return ((" + subClassName + ")getTarget()).super$" + method.getName() + "(" + JavassistSummerCompilerUtil.invokerArguments(parameterTypes) + ");" + " } ";
+            CtMethod invokerCtMethod = Javassist.ctNewMethodMake(invokerCtMethodSrc, invokerCtClass);
+            Javassist.ctClassAddMethod(invokerCtClass, invokerCtMethod);
+            Javassist.ctClassToBytecode(invokerCtClass, Stream.newFileOutputStream("/classes/" + methodInvokerTypeName + ".class"));
+            Javassist.ctClassToClass(invokerCtClass);
+
+            // make overrideMethod
             String overrideMethodSrc = JavassistSummerCompilerUtil.makeOverrideMethodSrc(method);
             CtMethod overrideSuperMethod = Javassist.ctNewMethodMake(overrideMethodSrc, ctClass);
             Javassist.ctClassAddMethod(ctClass, overrideSuperMethod);
         }
 
-        Javassist.ctClassToBytecode(ctClass, Stream.newFileOutputStream("/classes/a.class"));
+        Javassist.ctClassToBytecode(ctClass, Stream.newFileOutputStream("/classes/" + subClassName + ".class"));
         return Javassist.ctClassToClass(ctClass);
     }
 }

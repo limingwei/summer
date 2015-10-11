@@ -6,9 +6,11 @@ import java.io.OutputStream;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.CtMethod;
 import javassist.CtNewMethod;
 import javassist.NotFoundException;
+import javassist.compiler.Javac.CtFieldWithInit;
 
 /**
  * @author li
@@ -59,6 +61,22 @@ public class Javassist {
     public static void ctClassAddMethod(CtClass ctClass, CtMethod ctNewMethodMake) {
         try {
             ctClass.addMethod(ctNewMethodMake);
+        } catch (CannotCompileException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static CtField ctFieldWithInitMake(String src, CtClass declaring) {
+        try {
+            return CtFieldWithInit.make(src, declaring);
+        } catch (CannotCompileException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void ctClassAddField(CtClass ctClass, CtField ctField) {
+        try {
+            ctClass.addField(ctField);
         } catch (CannotCompileException e) {
             throw new RuntimeException(e);
         }

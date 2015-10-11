@@ -10,34 +10,42 @@ import java.lang.reflect.Method;
 public class JavassistSummerCompilerUtil {
     public static String makeOverrideMethodSrc(Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
-        String src = "public " + method.getReturnType().getName() + " " + method.getName() + "(" + parameters(parameterTypes) + "){";
-        src += "return super$" + method.getName() + "(" + arguments(parameterTypes) + ");";
+        String returnTypeName = method.getReturnType().getName();
+
+        String src = "public " + returnTypeName + " " + method.getName() + "(" + parameters(parameterTypes) + ")" + "{";
+        src += method.getDeclaringClass().getName() + " target = this;";
+        src += "Method method = null;"; // 不可为空
+        src += "Object[] args = new Object[] { " + arguments(parameterTypes) + " };";
+        src += "AopFilter[] filters = new AopFilter[]{new summer.aop.AopFilter111()};";
+        src += "Invoker invoker = new " + methodInvokerTypeName(method) + "();";
+        src += "invoker.setTarget(target);";
+        src += "return (" + method.getReturnType().getName() + ")new AopChain(target, method, args, filters, invoker).doFilter().getResult();";
         src += "}";
         return src;
     }
+    
+    public static String methodInvokerTypeName(Method method) {
+        String returnTypeName = method.getReturnType().getName();
+        Class<?>[] parameterTypes = method.getParameterTypes();
 
-    // Object target = this;
-    // Method method = null;
-    // Object[] args = new Object[] { str, integer };
-    //
-    // AopFilter aopFilter = new AopFilter() {
-    // public void doFilter(AopChain chain) {
-    // System.err.println("before args=" + chain.getArgs());
-    // chain.getArgs()[1] = "55555";
-    // chain.doFilter();
-    // System.err.println("after result=" + chain.getResult());
-    // }
-    // };
-    //
-    // List<AopFilter> filters = new ArrayList<AopFilter>(Arrays.asList(aopFilter));
-    //
-    // Invoker invoker = new Invoker() {
-    // public Object invoke() {
-    // return super$sayHi((String) getArgs()[0], (Integer) getArgs()[1]);
-    // }
-    // };
-    //
-    // return (String) new AopChain(target, method, args, filters, invoker).doFilter().getResult();
+        String methodInvokerTypeName = method.getDeclaringClass().getName() + ".public_" + returnTypeName.replace('.', '$') + "_" + method.getName();
+        for (int i = 0; i < parameterTypes.length; i++) {
+            methodInvokerTypeName += "_" + parameterTypes[i].getName().replace('.', '$');
+        }
+        methodInvokerTypeName += "_Invoker";
+        return methodInvokerTypeName;
+    }
+
+    public static String invokerArguments(Class<?>[] parameterTypes) {
+        String src = "";
+        for (int i = 0; i < parameterTypes.length; i++) {
+            if (i > 0) {
+                src += ", ";
+            }
+            src += "(" + parameterTypes[i].getName() + ")getArgs()[" + i + "]";
+        }
+        return src;
+    }
 
     public static String makeCallSuperMethodSrc(Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
@@ -50,7 +58,7 @@ public class JavassistSummerCompilerUtil {
     /**
      * 引用实参列表
      */
-    private static String arguments(Class<?>[] parameterTypes) {
+    public static String arguments(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {
@@ -64,7 +72,7 @@ public class JavassistSummerCompilerUtil {
     /**
      * 申明形参列表
      */
-    private static String parameters(Class<?>[] parameterTypes) {
+    public static String parameters(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {

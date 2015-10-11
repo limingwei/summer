@@ -3,6 +3,9 @@ package summer.aop;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import summer.util.ListUtil;
+import summer.util.Reflect;
+
 /**
  * @author li
  * @version 1 (2015年10月10日 下午10:50:55)
@@ -40,6 +43,14 @@ public class AopChain {
     private int index = 0;
 
     private Invoker invoker;
+
+    public Invoker getInvoker() {
+        return invoker;
+    }
+
+    public void setInvoker(Invoker invoker) {
+        this.invoker = invoker;
+    }
 
     /**
      * 返回被代理方法宿主对象
@@ -96,6 +107,10 @@ public class AopChain {
         this.invoker = invoker;
     }
 
+    public AopChain(Object target, Method method, Object[] args, AopFilter[] filters, Invoker invoker) {
+        this(target, method, args, ListUtil.newList(filters), invoker);
+    }
+
     /**
      * 执行AopChain,执行下一个AopFilter或者执行被代理方法
      */
@@ -113,8 +128,11 @@ public class AopChain {
      */
     public AopChain invoke() {
         try {
-            // this.result = Reflect.invokeMethod(target, method, args);
-            this.result = invoker.setArgs(getArgs()).invoke();
+            if (null == getInvoker()) {
+                setResult(Reflect.invokeMethod(getTarget(), getMethod(), getArgs()));
+            } else {
+                setResult(getInvoker().setArgs(getArgs()).invoke());
+            }
         } catch (Throwable e) {
             throw new RuntimeException(e + " ", e);
         }
