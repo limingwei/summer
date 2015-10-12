@@ -8,6 +8,7 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.CtMethod;
+import javassist.LoaderClassPath;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.ReferenceType;
@@ -28,7 +29,8 @@ public class JavassistSummerCompiler implements SummerCompiler {
         Class<?> fieldType = field.getType();
         String fieldTypeName = fieldType.getName();
 
-        ClassPool classPool = ClassPool.getDefault();
+        ClassPool classPool = new ClassPool(true);
+        classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()));
 
         String subClassName = fieldTypeName + "_JavassistSummerCompiler_Reference";
         CtClass ctClass = classPool.makeClass(subClassName);
@@ -104,7 +106,9 @@ public class JavassistSummerCompiler implements SummerCompiler {
     public Class<?> compileClass(Class<?> originalType) {
         String originalTypeName = originalType.getName();
 
-        ClassPool classPool = ClassPool.getDefault();
+        ClassPool classPool = new ClassPool(true);
+        classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()));
+
         classPool.importPackage("java.lang.reflect.Method");
         classPool.importPackage("summer.aop.AopFilter");
         classPool.importPackage("summer.aop.Invoker");

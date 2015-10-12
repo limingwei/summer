@@ -19,7 +19,7 @@ import javax.servlet.ServletResponse;
  * @since Java7
  */
 public class SummerServletContextListener implements ServletContextListener {
-    public final void contextInitialized(ServletContextEvent servletContextEvent) {
+    public void contextInitialized(ServletContextEvent servletContextEvent) {
         addHelloWorldForAllRequest(servletContextEvent);
     }
 

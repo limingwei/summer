@@ -6,5 +6,11 @@ package summer.mvc.annotation;
  * @since Java7
  */
 public @interface At {
+    public static final String GET = "GET";
+
+    public static final String POST = "POST";
+
     String[] value();
+
+    String[] method() default { GET, POST };
 }

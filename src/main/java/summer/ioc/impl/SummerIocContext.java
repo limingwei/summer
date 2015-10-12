@@ -11,6 +11,7 @@ import summer.converter.ConvertService;
 import summer.converter.impl.SummerConvertService;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
+import summer.ioc.IocContext;
 import summer.ioc.IocLoader;
 import summer.ioc.ReferenceType;
 import summer.ioc.SummerCompiler;
@@ -58,6 +59,10 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         log.info("SummerIocContext init, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
     }
+    
+    public List<BeanDefinition> getBeanDefinitions() {
+        return beanDefinitions;
+    }
 
     public <T> T doGetBean(Class<T> type) {
         BeanDefinition beanDefinition = findMatchBeanDefinition(type);
@@ -74,10 +79,14 @@ public class SummerIocContext extends AbstractSummerIocContext {
     }
 
     public <T> T doGetBean(Class<T> type, String id) {
-        BeanDefinition beanDefinition = findMatchBeanDefinition(type, id);
-        Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", id=" + id + ", beanDefinitions=" + beanDefinitions);
+        if (IocContext.class.equals(type)) {
+            return (T) this;
+        } else {
+            BeanDefinition beanDefinition = findMatchBeanDefinition(type, id);
+            Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", id=" + id + ", beanDefinitions=" + beanDefinitions);
 
-        return (T) getBeanInstance(beanDefinition);
+            return (T) getBeanInstance(beanDefinition);
+        }
     }
 
     private synchronized Object getBeanInstance(BeanDefinition beanDefinition) {
