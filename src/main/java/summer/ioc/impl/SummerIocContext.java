@@ -47,6 +47,8 @@ public class SummerIocContext extends AbstractSummerIocContext {
     }
 
     public SummerIocContext(IocLoader iocLoader) {
+        log.info("\n\n\thttps://github.com/limingwei/summer\n");
+
         this.iocLoader = iocLoader;
 
         this.beanDefinitions = new ArrayList<BeanDefinition>();
@@ -58,7 +60,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         this.summerCompiler = new CachedSummerCompiler(new JavassistSummerCompiler());
 
-        log.info("SummerIocContext init, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
+        log.info("SummerIocContext inited, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
     }
 
     public List<BeanDefinition> getBeanDefinitions() {
@@ -123,6 +125,8 @@ public class SummerIocContext extends AbstractSummerIocContext {
                 ((IocContextAware) beanInstance).setIocContext(this);
             }
 
+            log.info("init bean " + beanDefinition.getId() + ", " + beanDefinition.getBeanType() + ", beanInstance=" + beanInstance);
+
             beanInstances.put(beanDefinition, beanInstance);
             instance = beanInstance;
         }
@@ -149,7 +153,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
         return null;
     }
 
-    public boolean isBeanTypeMatch(Class<?> type, BeanDefinition beanDefinition) {
+    private boolean isBeanTypeMatch(Class<?> type, BeanDefinition beanDefinition) {
         Class<?> beanType = beanDefinition.getBeanType();
         return type.isAssignableFrom(beanType) || //
                 (FactoryBean.class.isAssignableFrom(beanType) && type.isAssignableFrom((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]));

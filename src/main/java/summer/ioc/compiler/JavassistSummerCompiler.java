@@ -16,7 +16,9 @@ import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocContextAware;
 import summer.ioc.SummerCompiler;
+import summer.log.Logger;
 import summer.util.JavassistUtil;
+import summer.util.Log;
 import summer.util.Reflect;
 
 /**
@@ -26,6 +28,8 @@ import summer.util.Reflect;
  */
 // com.alibaba.dubbo.common.compiler.support.JavassistCompiler
 public class JavassistSummerCompiler implements SummerCompiler {
+    private static final Logger log = Log.slf4j();
+
     public Class<?> compileClass(Class<?> originalType) {
         String originalTypeName = originalType.getName();
 
@@ -51,16 +55,14 @@ public class JavassistSummerCompiler implements SummerCompiler {
 
         List<Method> methods = Reflect.getPublicMethods(originalType);
         for (Method method : methods) {
-            // make callSuperMethod
-            makeCallSuperMethod(ctClass, method);
+            addCallSuperMethod(ctClass, method);
 
-            // make invoker class
-            makeInvokerClass(classPool, subClassName, method);
+            addInvokerClass(classPool, subClassName, method);
 
-            // make overrideMethod
-            makeOverrideMethod(ctClass, method);
+            addOverrideMethod(ctClass, method);
         }
 
+        log.info("compileClass for" + originalTypeName);
         return JavassistUtil.ctClassToClass(ctClass);
     }
 
@@ -94,10 +96,10 @@ public class JavassistSummerCompiler implements SummerCompiler {
 
         List<Method> methods = Reflect.getPublicMethods(fieldType);
         for (Method method : methods) {
-            // makeCallDelegateOverrideMethod
-            makeCallDelegateOverrideMethod(ctClass, method, beanDefinition, beanField);
+            addCallDelegateOverrideMethod(ctClass, method, beanDefinition, beanField);
         }
 
+        log.info("compileReference beanDefinition.id=" + beanDefinition.getId() + ", " + beanDefinition.getBeanType().getName() + "." + beanField.getName());
         return JavassistUtil.ctClassToClass(ctClass);
     }
 
@@ -107,21 +109,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
     }
 
     private void addReferenceTargetFieldGetter(CtClass ctClass, BeanDefinition beanDefinition, BeanField beanField) {
-        String referenceTargetFieldGetterSrc = "public java.lang.Object getReferenceTarget() { ";
-        referenceTargetFieldGetterSrc += " if(null==this.referenceTarget) { ";
-
-        Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
-        Class<?> fieldType = field.getType();
-        String beanFieldValue = beanField.getValue();
-        if (null == beanFieldValue || beanFieldValue.isEmpty()) {
-            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class);";
-        } else {
-            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class,\"" + beanFieldValue + "\");";
-        }
-
-        referenceTargetFieldGetterSrc += " } ";
-        referenceTargetFieldGetterSrc += " return this.referenceTarget; ";
-        referenceTargetFieldGetterSrc += " } ";
+        String referenceTargetFieldGetterSrc = JavassistSummerCompilerUtil.buildReferenceTargetFieldGetterSrc(beanDefinition, beanField);
 
         CtMethod iocContextFieldSetter = JavassistUtil.ctNewMethodMake(referenceTargetFieldGetterSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, iocContextFieldSetter);
@@ -138,44 +126,34 @@ public class JavassistSummerCompiler implements SummerCompiler {
         JavassistUtil.ctClassAddMethod(ctClass, iocContextFieldSetter);
     }
 
-    private void makeCallDelegateOverrideMethod(CtClass ctClass, Method method, BeanDefinition beanDefinition, BeanField beanField) {
-        String callDelegateOverrideMethodSrc = JavassistSummerCompilerUtil.makeCallDelegateOverrideMethod(method, beanDefinition, beanField);
+    private void addCallDelegateOverrideMethod(CtClass ctClass, Method method, BeanDefinition beanDefinition, BeanField beanField) {
+        String callDelegateOverrideMethodSrc = JavassistSummerCompilerUtil.buildCallDelegateOverrideMethodSrc(method, beanDefinition, beanField);
         CtMethod callDelegateOverrideMethod = JavassistUtil.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
     }
 
-    private void makeOverrideMethod(CtClass ctClass, Method method) {
-        String overrideMethodSrc = JavassistSummerCompilerUtil.makeOverrideMethodSrc(method);
+    private void addOverrideMethod(CtClass ctClass, Method method) {
+        String overrideMethodSrc = JavassistSummerCompilerUtil.buildOverrideMethodSrc(method);
         CtMethod overrideSuperMethod = JavassistUtil.ctNewMethodMake(overrideMethodSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, overrideSuperMethod);
     }
 
-    private void makeInvokerClass(ClassPool classPool, String subClassName, Method method) {
+    private void addInvokerClass(ClassPool classPool, String subClassName, Method method) {
         String methodInvokerTypeName = JavassistSummerCompilerUtil.methodInvokerTypeName(method);
         CtClass invokerCtClass = classPool.makeClass(methodInvokerTypeName);
         CtClass aopInvokerCtClass = JavassistUtil.getCtClass(classPool, AopInvoker.class.getName());
         invokerCtClass.addInterface(aopInvokerCtClass);
 
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        String invokerCtMethodSrc = "public Object invoke(Object target, Object[] args) { ";//
-        String invokeSuperStatement = "((" + subClassName + ")target).super_" + method.getName() + "(" + JavassistSummerCompilerUtil.invokerArguments(parameterTypes) + ");";
+        String invokerCtMethodSrc = JavassistSummerCompilerUtil.buildInvokerClassSrc(subClassName, method);
 
-        if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
-            invokerCtMethodSrc += invokeSuperStatement;
-            invokerCtMethodSrc += "return null;";
-        } else {
-            invokerCtMethodSrc += " return " + invokeSuperStatement;
-        }
-
-        invokerCtMethodSrc += " } ";
         CtMethod invokerCtMethod = JavassistUtil.ctNewMethodMake(invokerCtMethodSrc, invokerCtClass);
         JavassistUtil.ctClassAddMethod(invokerCtClass, invokerCtMethod);
 
         JavassistUtil.ctClassToClass(invokerCtClass);
     }
 
-    private void makeCallSuperMethod(CtClass ctClass, Method method) {
-        String callSuperMethodSrc = JavassistSummerCompilerUtil.makeCallSuperMethodSrc(method);
+    private void addCallSuperMethod(CtClass ctClass, Method method) {
+        String callSuperMethodSrc = JavassistSummerCompilerUtil.buildCallSuperMethodSrc(method);
         CtMethod callSuperMethod = JavassistUtil.ctNewMethodMake(callSuperMethodSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, callSuperMethod);
     }

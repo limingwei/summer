@@ -12,6 +12,8 @@ import org.w3c.dom.NodeList;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocLoader;
+import summer.log.Logger;
+import summer.util.Log;
 import summer.util.Reflect;
 import summer.util.Xml;
 
@@ -21,9 +23,15 @@ import summer.util.Xml;
  * @since Java7
  */
 public class XmlIocLoader implements IocLoader {
-    private ArrayList<BeanDefinition> beanDefinitions = new ArrayList<BeanDefinition>();
+    private static final Logger log = Log.slf4j();
+    private InputStream inputStream;
 
     public XmlIocLoader(InputStream inputStream) {
+        this.inputStream = inputStream;
+    }
+
+    public List<BeanDefinition> getBeanDefinitions() {
+        ArrayList<BeanDefinition> beanDefinitions = new ArrayList<BeanDefinition>();
         Document document = Xml.parse(inputStream);
         NodeList nodeList = document.getElementsByTagName("bean");
         for (int i = 0; i < nodeList.getLength(); i++) {
@@ -31,9 +39,11 @@ public class XmlIocLoader implements IocLoader {
             BeanDefinition beanDefinition = parseBean(node);
             beanDefinitions.add(beanDefinition);
         }
+        log.info("getBeanDefinitions() returning {}", beanDefinitions.size());
+        return beanDefinitions;
     }
 
-    public BeanDefinition parseBean(Node node) {
+    private static BeanDefinition parseBean(Node node) {
         BeanDefinition beanDefinition = new BeanDefinition();
 
         NamedNodeMap attributes = node.getAttributes();
@@ -58,7 +68,7 @@ public class XmlIocLoader implements IocLoader {
         return beanDefinition;
     }
 
-    private List<BeanField> parseBeanFields(Node node) {
+    private static List<BeanField> parseBeanFields(Node node) {
         List<BeanField> beanFields = new ArrayList<BeanField>();
         NamedNodeMap attributes = node.getAttributes();
         for (int i = 0; i < attributes.getLength(); i++) {
@@ -76,9 +86,5 @@ public class XmlIocLoader implements IocLoader {
         }
 
         return beanFields;
-    }
-
-    public List<BeanDefinition> getBeanDefinitions() {
-        return beanDefinitions;
     }
 }

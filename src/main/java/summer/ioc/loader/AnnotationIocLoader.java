@@ -5,6 +5,8 @@ import java.util.List;
 
 import summer.ioc.BeanDefinition;
 import summer.ioc.IocLoader;
+import summer.log.Logger;
+import summer.util.Log;
 
 /**
  * @author li
@@ -12,7 +14,11 @@ import summer.ioc.IocLoader;
  * @since Java7
  */
 public class AnnotationIocLoader implements IocLoader {
+    private static final Logger log = Log.slf4j();
+
     public List<BeanDefinition> getBeanDefinitions() {
-        return new ArrayList<BeanDefinition>();
+        ArrayList<BeanDefinition> beanDefinitions = new ArrayList<BeanDefinition>();
+        log.info("getBeanDefinitions() returning {}", beanDefinitions.size());
+        return beanDefinitions;
     }
 }

@@ -1,10 +1,8 @@
 package summer.ioc.impl;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import summer.ioc.BeanDefinition;
 import summer.ioc.IocContext;
 
 /**
@@ -70,6 +68,4 @@ public abstract class AbstractSummerIocContext implements IocContext {
     public abstract <T> T doGetBean(Class<T> type);
 
     public abstract <T> T doGetBean(Class<T> type, String id);
-
-    public abstract List<BeanDefinition> getBeanDefinitions();
 }

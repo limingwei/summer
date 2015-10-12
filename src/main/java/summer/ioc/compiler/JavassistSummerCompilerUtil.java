@@ -10,12 +10,10 @@ import summer.aop.TransactionAopFilter;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.MethodPool;
-import summer.log.Logger;
 import summer.mvc.ParameterAdapter;
 import summer.mvc.ViewProcessor;
 import summer.mvc.annotation.At;
 import summer.mvc.aop.ViewProcessorAopFilter;
-import summer.util.Log;
 import summer.util.Reflect;
 
 /**
@@ -24,23 +22,57 @@ import summer.util.Reflect;
  * @since Java7
  */
 public class JavassistSummerCompilerUtil {
-    private static final Logger log = Log.slf4j();
+    public static String buildInvokerClassSrc(String subClassName, Method method) {
+        Class<?>[] parameterTypes = method.getParameterTypes();
 
-    public static String makeOverrideMethodSrc(Method method) {
+        String invokerCtMethodSrc = "public Object invoke(Object target, Object[] args) { ";//
+        String invokeSuperStatement = "((" + subClassName + ")target).super_" + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(parameterTypes) + ");";
+
+        if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
+            invokerCtMethodSrc += invokeSuperStatement;
+            invokerCtMethodSrc += "return null;";
+        } else {
+            invokerCtMethodSrc += " return " + invokeSuperStatement;
+        }
+
+        invokerCtMethodSrc += " } ";
+        return invokerCtMethodSrc;
+    }
+
+    public static String buildReferenceTargetFieldGetterSrc(BeanDefinition beanDefinition, BeanField beanField) {
+        String referenceTargetFieldGetterSrc = "public java.lang.Object getReferenceTarget() { ";
+        referenceTargetFieldGetterSrc += " if(null==this.referenceTarget) { ";
+
+        Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
+        Class<?> fieldType = field.getType();
+        String beanFieldValue = beanField.getValue();
+        if (null == beanFieldValue || beanFieldValue.isEmpty()) {
+            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class);";
+        } else {
+            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class,\"" + beanFieldValue + "\");";
+        }
+
+        referenceTargetFieldGetterSrc += " } ";
+        referenceTargetFieldGetterSrc += " return this.referenceTarget; ";
+        referenceTargetFieldGetterSrc += " } ";
+        return referenceTargetFieldGetterSrc;
+    }
+
+    public static String buildOverrideMethodSrc(Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
         String returnTypeName = Reflect.typeToJavaCode(method.getReturnType());
 
-        String methodSignature = "public " + returnTypeName + " " + method.getName() + "(" + parameters(parameterTypes) + ")";
+        String methodSignature = "public " + returnTypeName + " " + method.getName() + "(" + _parameters(parameterTypes) + ")";
         MethodPool.putMethod(method.getDeclaringClass().getName() + " " + methodSignature, method);
         String src = methodSignature + "{";
 
         if (0 == parameterTypes.length) {
             src += "Object[] args = new Object[0];";
         } else {
-            src += "Object[] args = new Object[] { " + arguments(parameterTypes) + " } ;";
+            src += "Object[] args = new Object[] { " + _arguments(parameterTypes) + " } ;";
         }
 
-        src += "AopFilter[] filters = " + aopFiltersSrc(method) + ";";
+        src += "AopFilter[] filters = " + _aop_filters_src(method) + ";";
         src += AopInvoker.class.getName() + " invoker = new " + methodInvokerTypeName(method) + "();";
 
         src += "Method method = summer.ioc.MethodPool.getMethod(\"" + method.getDeclaringClass().getName() + " " + methodSignature + "\");"; // 不可为空
@@ -55,7 +87,7 @@ public class JavassistSummerCompilerUtil {
         return src;
     }
 
-    public static String aopFiltersSrc(Method method) {
+    private static String _aop_filters_src(Method method) {
         String aopFiltersSrc = "";
         if (null != method.getAnnotation(At.class)) {
             String parameterAdapterClassName = ParameterAdapter.class.getName();
@@ -97,7 +129,7 @@ public class JavassistSummerCompilerUtil {
         return methodInvokerTypeName;
     }
 
-    public static String invokerArguments(Class<?>[] parameterTypes) {
+    private static String _invoker_arguments(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {
@@ -108,25 +140,25 @@ public class JavassistSummerCompilerUtil {
         return src;
     }
 
-    public static String makeCallSuperMethodSrc(Method method) {
+    public static String buildCallSuperMethodSrc(Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
-        String src = "public " + Reflect.typeToJavaCode(method.getReturnType()) + " super_" + method.getName() + "(" + parameters(parameterTypes) + "){";
-        src += "return super." + method.getName() + "(" + arguments(parameterTypes) + ");";
+        String src = "public " + Reflect.typeToJavaCode(method.getReturnType()) + " super_" + method.getName() + "(" + _parameters(parameterTypes) + "){";
+        src += "return super." + method.getName() + "(" + _arguments(parameterTypes) + ");";
         src += "}";
         return src;
     }
 
-    public static String makeCallDelegateOverrideMethod(Method method, BeanDefinition beanDefinition, BeanField beanField) {
+    public static String buildCallDelegateOverrideMethodSrc(Method method, BeanDefinition beanDefinition, BeanField beanField) {
         Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
         Class<?> fieldType = field.getType();
 
         Class<?>[] parameterTypes = method.getParameterTypes();
-        String src = "public " + Reflect.typeToJavaCode(method.getReturnType()) + " " + method.getName() + "(" + parameters(parameterTypes) + "){";
+        String src = "public " + Reflect.typeToJavaCode(method.getReturnType()) + " " + method.getName() + "(" + _parameters(parameterTypes) + "){";
 
         if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
-            src += "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
+            src += "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + _arguments(parameterTypes) + ");";
         } else {
-            src += "return " + "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
+            src += "return " + "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + _arguments(parameterTypes) + ");";
         }
 
         src += "}";
@@ -136,7 +168,7 @@ public class JavassistSummerCompilerUtil {
     /**
      * 引用实参列表
      */
-    public static String arguments(Class<?>[] parameterTypes) {
+    private static String _arguments(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {
@@ -150,7 +182,7 @@ public class JavassistSummerCompilerUtil {
     /**
      * 申明形参列表
      */
-    public static String parameters(Class<?>[] parameterTypes) {
+    private static String _parameters(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {
