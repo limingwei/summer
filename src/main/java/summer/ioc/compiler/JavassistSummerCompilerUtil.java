@@ -8,7 +8,7 @@ import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.MethodPool;
 import summer.log.Logger;
-import summer.mvc.ParameterAdapter;
+import summer.mvc.adapter.ParameterAdapter;
 import summer.mvc.annotation.At;
 import summer.mvc.impl.ViewProcessor;
 import summer.util.Log;
@@ -39,7 +39,7 @@ public class JavassistSummerCompilerUtil {
         String aopFiltersSrc = "";
         if (null != method.getAnnotation(At.class)) {
             String parameterAdapterClassName = ParameterAdapter.class.getName();
-            String parameterAdapterAopFilterClassName = summer.mvc.impl.ParameterAdapterAopFilter.class.getName();
+            String parameterAdapterAopFilterClassName = summer.mvc.aop.ParameterAdapterAopFilter.class.getName();
             aopFiltersSrc += "new " + parameterAdapterAopFilterClassName + "((" + parameterAdapterClassName + ")iocContext.getBean(" + parameterAdapterClassName + ".class))";
         }
         Aop aop = method.getAnnotation(Aop.class);
