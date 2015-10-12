@@ -30,7 +30,9 @@ public class SummerActionInvokeService implements ActionInvokeService {
         if (actionHandler instanceof MethodActionHandler) {
             Method actionMethod = ((MethodActionHandler) actionHandler).getMethod();
             Object actionBean = getIocContext().getBean(actionMethod.getDeclaringClass());
-            Reflect.invokeMethod(actionBean, actionMethod, new Object[] {}); // TODO 改成生成代码执行
+            Object[] args = new Object[actionMethod.getParameterTypes().length];
+
+            Reflect.invokeMethod(actionBean, actionMethod, args); // TODO 改成生成代码执行
         } else {
             throw new RuntimeException();
         }
