@@ -13,7 +13,7 @@ import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocContext;
 import summer.ioc.IocLoader;
-import summer.ioc.ReferenceType;
+import summer.ioc.IocContextAware;
 import summer.ioc.SummerCompiler;
 import summer.ioc.compiler.CachedSummerCompiler;
 import summer.ioc.compiler.JavassistSummerCompiler;
@@ -59,7 +59,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         log.info("SummerIocContext init, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
     }
-    
+
     public List<BeanDefinition> getBeanDefinitions() {
         return beanDefinitions;
     }
@@ -104,10 +104,14 @@ public class SummerIocContext extends AbstractSummerIocContext {
                     Reflect.setFieldValue(beanInstance, field, value);
                 } else if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) {
                     Field field = Reflect.getField(beanType, beanField.getName());
-                    ReferenceType value = (ReferenceType) newReferenceInstance(beanDefinition, beanField);
+                    IocContextAware value = (IocContextAware) newReferenceInstance(beanDefinition, beanField);
                     value.setIocContext(this);
                     Reflect.setFieldValue(beanInstance, field, value);
                 }
+            }
+
+            if (beanInstance instanceof IocContextAware) {
+                ((IocContextAware) beanInstance).setIocContext(this);
             }
 
             beanInstances.put(beanDefinition, beanInstance);

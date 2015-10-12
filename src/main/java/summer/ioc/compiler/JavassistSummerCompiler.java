@@ -11,7 +11,7 @@ import javassist.CtMethod;
 import javassist.LoaderClassPath;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
-import summer.ioc.ReferenceType;
+import summer.ioc.IocContextAware;
 import summer.ioc.SummerCompiler;
 import summer.util.JavassistUtil;
 import summer.util.Reflect;
@@ -23,6 +23,44 @@ import summer.util.Reflect;
  */
 // com.alibaba.dubbo.common.compiler.support.JavassistCompiler
 public class JavassistSummerCompiler implements SummerCompiler {
+    public Class<?> compileClass(Class<?> originalType) {
+        String originalTypeName = originalType.getName();
+
+        ClassPool classPool = new ClassPool(true);
+        classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()));
+
+        classPool.importPackage("java.lang.reflect.Method");
+        classPool.importPackage("summer.aop.AopFilter");
+        classPool.importPackage("summer.aop.Invoker");
+        classPool.importPackage("summer.aop.AopChain");
+
+        String subClassName = originalTypeName + "_JavassistSummerCompiler_Aop";
+        CtClass ctClass = classPool.makeClass(subClassName);
+        CtClass superCtClass = JavassistUtil.getCtClass(classPool, originalTypeName);
+        JavassistUtil.setSuperclass(ctClass, superCtClass);
+
+        // IocContextAware
+        CtClass iocContextAwareCtClass = JavassistUtil.getCtClass(classPool, IocContextAware.class.getName());
+        ctClass.addInterface(iocContextAwareCtClass);
+
+        addIocContextField(ctClass);
+        addIocContextFieldSetter(ctClass);
+
+        List<Method> methods = Reflect.getPublicMethods(originalType);
+        for (Method method : methods) {
+            // make callSuperMethod
+            makeCallSuperMethod(ctClass, method);
+
+            // make invoker class
+            makeInvokerClass(classPool, subClassName, method);
+
+            // make overrideMethod
+            makeOverrideMethod(ctClass, method);
+        }
+
+        return JavassistUtil.ctClassToClass(ctClass);
+    }
+
     public Class<?> compileReference(BeanDefinition beanDefinition, BeanField beanField) {
         Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
 
@@ -41,9 +79,9 @@ public class JavassistSummerCompiler implements SummerCompiler {
             JavassistUtil.setSuperclass(ctClass, fieldTypeCtClass);
         }
 
-        // ReferenceType
-        CtClass referenceTypeCtClass = JavassistUtil.getCtClass(classPool, ReferenceType.class.getName());
-        ctClass.addInterface(referenceTypeCtClass);
+        // IocContextAware
+        CtClass iocContextAwareCtClass = JavassistUtil.getCtClass(classPool, IocContextAware.class.getName());
+        ctClass.addInterface(iocContextAwareCtClass);
 
         addIocContextField(ctClass);
         addIocContextFieldSetter(ctClass);
@@ -101,37 +139,6 @@ public class JavassistSummerCompiler implements SummerCompiler {
         String callDelegateOverrideMethodSrc = JavassistSummerCompilerUtil.makeCallDelegateOverrideMethod(method, beanDefinition, beanField);
         CtMethod callDelegateOverrideMethod = JavassistUtil.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
-    }
-
-    public Class<?> compileClass(Class<?> originalType) {
-        String originalTypeName = originalType.getName();
-
-        ClassPool classPool = new ClassPool(true);
-        classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()));
-
-        classPool.importPackage("java.lang.reflect.Method");
-        classPool.importPackage("summer.aop.AopFilter");
-        classPool.importPackage("summer.aop.Invoker");
-        classPool.importPackage("summer.aop.AopChain");
-
-        String subClassName = originalTypeName + "_JavassistSummerCompiler_Aop";
-        CtClass ctClass = classPool.makeClass(subClassName);
-        CtClass superCtClass = JavassistUtil.getCtClass(classPool, originalTypeName);
-        JavassistUtil.setSuperclass(ctClass, superCtClass);
-
-        List<Method> methods = Reflect.getPublicMethods(originalType);
-        for (Method method : methods) {
-            // make callSuperMethod
-            makeCallSuperMethod(ctClass, method);
-
-            // make invoker class
-            makeInvokerClass(classPool, subClassName, method);
-
-            // make overrideMethod
-            makeOverrideMethod(ctClass, method);
-        }
-
-        return JavassistUtil.ctClassToClass(ctClass);
     }
 
     private void makeOverrideMethod(CtClass ctClass, Method method) {

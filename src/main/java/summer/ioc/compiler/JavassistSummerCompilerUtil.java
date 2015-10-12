@@ -3,10 +3,12 @@ package summer.ioc.compiler;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
+import summer.aop.Aop;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.MethodPool;
 import summer.log.Logger;
+import summer.mvc.annotation.At;
 import summer.mvc.impl.ParameterAdapter;
 import summer.mvc.impl.ViewProcessor;
 import summer.util.Log;
@@ -34,7 +36,25 @@ public class JavassistSummerCompilerUtil {
             src += "Object[] args = new Object[] { " + arguments(parameterTypes) + " } ;";
         }
 
-        src += "AopFilter[] filters = new AopFilter[]{" + "new " + ParameterAdapter.class.getName() + "(), new " + ViewProcessor.class.getName() + "()};";
+        String aopFiltersSrc = "";
+        if (null != method.getAnnotation(At.class)) {
+            aopFiltersSrc += "iocContext.getBean(" + ParameterAdapter.class.getName() + ".class)";
+        }
+        Aop aop = method.getAnnotation(Aop.class);
+        if (null != aop) {
+            for (String aopBeanName : aop.value()) {
+                aopFiltersSrc += " , iocContext.getBean(\"" + aopBeanName + "\")";
+            }
+        }
+        if (null != method.getAnnotation(At.class)) {
+            aopFiltersSrc += " , iocContext.getBean(" + ViewProcessor.class.getName() + ".class)";
+        }
+
+        if (aopFiltersSrc.isEmpty()) {
+            src += "AopFilter[] filters = new AopFilter[0];";
+        } else {
+            src += "AopFilter[] filters = new AopFilter[]{" + aopFiltersSrc + "};";
+        }
 
         src += "Invoker invoker = new " + methodInvokerTypeName(method) + "();";
         src += "invoker.setTarget(this);";
@@ -84,7 +104,6 @@ public class JavassistSummerCompilerUtil {
     }
 
     public static String makeCallDelegateOverrideMethod(Method method, BeanDefinition beanDefinition, BeanField beanField) {
-
         Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
         Class<?> fieldType = field.getType();
 

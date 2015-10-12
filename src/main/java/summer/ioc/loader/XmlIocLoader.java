@@ -12,6 +12,7 @@ import org.w3c.dom.NodeList;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocLoader;
+import summer.util.Assert;
 import summer.util.Reflect;
 import summer.util.Xml;
 
@@ -43,7 +44,9 @@ public class XmlIocLoader implements IocLoader {
         Class<?> beanType = Reflect.classForName(typeName);
         beanDefinition.setBeanType(beanType);
 
-        String beanId = attributes.getNamedItem("id").getNodeValue();
+        Node idNode = attributes.getNamedItem("id");
+        Assert.noNull(idNode, "BeanId 不可以为空, " + typeName);
+        String beanId = idNode.getNodeValue();
         beanDefinition.setId(beanId);
 
         beanDefinition.setBeanFields(parseBeanFields(node));

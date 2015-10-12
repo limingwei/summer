@@ -8,6 +8,8 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import summer.util.Assert;
+
 /**
  * @author li
  * @version 1 (2015年10月12日 下午3:49:33)
@@ -36,7 +38,9 @@ public class Mvc {
 
     public static PrintWriter getResponseWriter() {
         try {
-            return getResponse().getWriter();
+            HttpServletResponse response = getResponse();
+            Assert.noNull(response, "getResponseWriter error, response为空");
+            return response.getWriter();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
