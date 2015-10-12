@@ -9,6 +9,6 @@ import summer.converter.AbstractConverter;
  */
 public class StringToLongConverter extends AbstractConverter<String, Long> {
     public Long convert(String source) {
-        return Long.parseLong(source);
+        return (null == source || source.isEmpty()) ? null : Long.parseLong(source);
     }
 }

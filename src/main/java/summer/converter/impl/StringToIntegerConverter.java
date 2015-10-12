@@ -9,6 +9,6 @@ import summer.converter.AbstractConverter;
  */
 public class StringToIntegerConverter extends AbstractConverter<String, Integer> {
     public Integer convert(String source) {
-        return Integer.parseInt(source);
+        return (null == source || source.isEmpty()) ? null : Integer.parseInt(source);
     }
 }

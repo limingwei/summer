@@ -9,6 +9,6 @@ import summer.converter.AbstractConverter;
  */
 public class StringToBooleanConverter extends AbstractConverter<String, Boolean> {
     public Boolean convert(String source) {
-        return Boolean.parseBoolean(source);
+        return (null == source || source.isEmpty()) ? null : Boolean.parseBoolean(source);
     }
 }

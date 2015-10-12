@@ -2,6 +2,7 @@ package summer.mvc.adapter.impl;
 
 import javax.servlet.http.HttpServletRequest;
 
+import summer.converter.ConvertService;
 import summer.mvc.adapter.ParameterAdapter;
 
 /**
@@ -10,10 +11,13 @@ import summer.mvc.adapter.ParameterAdapter;
  * @since Java7
  */
 public class SummerParameterAdapter implements ParameterAdapter {
+    private ConvertService convertService;
+
     public Object[] adapt(HttpServletRequest request, String[] parameterNames, Class<?>[] parameterTypes) {
         Object[] args = new Object[parameterTypes.length];
         for (int i = 0; i < args.length; i++) {
-            args[i] = request.getParameter(parameterNames[i]);
+            String value = request.getParameter(parameterNames[i]);
+            args[i] = convertService.convert(String.class, parameterTypes[i], value);
         }
         return args;
     }

@@ -3,6 +3,8 @@ package summer.util;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,9 +14,15 @@ import java.util.List;
  * @since Java7
  */
 public class Reflect {
+    public static Type[] getActualTypeArguments(Class<?> type) {
+        Type genericSuperclass = type.getGenericSuperclass();
+        ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+        return parameterizedType.getActualTypeArguments();
+    }
+
     public static String typeToJavaCode(Class<?> type) {
         if (type.isArray()) {
-            return type.getComponentType().getName()+"[]";
+            return type.getComponentType().getName() + "[]";
         } else {
             return type.getName();
         }

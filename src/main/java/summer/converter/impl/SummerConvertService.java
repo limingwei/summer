@@ -28,7 +28,7 @@ public class SummerConvertService implements ConvertService {
         } else {
             for (Converter converter : converters) {
                 if (converter.getFromType().equals(fromType) && converter.getToType().equals(toType)) {
-                    return (To) converter.convert(fromType);
+                    return (To) converter.convert(fromValue);
                 }
             }
             throw new RuntimeException("未找到合适的Converter, fromType=" + fromType + ", toType=" + toType);
