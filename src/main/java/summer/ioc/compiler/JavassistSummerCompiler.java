@@ -9,6 +9,9 @@ import javassist.CtClass;
 import javassist.CtField;
 import javassist.CtMethod;
 import javassist.LoaderClassPath;
+import summer.aop.AopChain;
+import summer.aop.AopFilter;
+import summer.aop.AopInvoker;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocContextAware;
@@ -29,10 +32,10 @@ public class JavassistSummerCompiler implements SummerCompiler {
         ClassPool classPool = new ClassPool(true);
         classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()));
 
-        classPool.importPackage("java.lang.reflect.Method");
-        classPool.importPackage("summer.aop.AopFilter");
-        classPool.importPackage("summer.aop.Invoker");
-        classPool.importPackage("summer.aop.AopChain");
+        classPool.importPackage(Method.class.getName());
+        classPool.importPackage(AopFilter.class.getName());
+        classPool.importPackage(AopInvoker.class.getName());
+        classPool.importPackage(AopChain.class.getName());
 
         String subClassName = originalTypeName + "_JavassistSummerCompiler_Aop";
         CtClass ctClass = classPool.makeClass(subClassName);
@@ -150,7 +153,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
     private void makeInvokerClass(ClassPool classPool, String subClassName, Method method) {
         String methodInvokerTypeName = JavassistSummerCompilerUtil.methodInvokerTypeName(method);
         CtClass invokerCtClass = classPool.makeClass(methodInvokerTypeName);
-        CtClass invokerSuperCtClass = JavassistUtil.getCtClass(classPool, "summer.aop.Invoker");
+        CtClass invokerSuperCtClass = JavassistUtil.getCtClass(classPool, AopInvoker.class.getName());
         JavassistUtil.setSuperclass(invokerCtClass, invokerSuperCtClass);
 
         Class<?>[] parameterTypes = method.getParameterTypes();

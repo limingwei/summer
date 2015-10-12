@@ -32,7 +32,7 @@ public class AopChain {
      */
     private Object result;
 
-    private Invoker invoker;
+    private AopInvoker invoker;
 
     /**
      * AopFilter列表
@@ -44,11 +44,11 @@ public class AopChain {
      */
     private int _index = 0;
 
-    public Invoker getInvoker() {
+    public AopInvoker getInvoker() {
         return invoker;
     }
 
-    public void setInvoker(Invoker invoker) {
+    public void setInvoker(AopInvoker invoker) {
         this.invoker = invoker;
     }
 
@@ -99,7 +99,7 @@ public class AopChain {
     /**
      * 初始化一个AopChain
      */
-    public AopChain(Object target, Method method, Object[] args, List<AopFilter> filters, Invoker invoker) {
+    public AopChain(Object target, Method method, Object[] args, List<AopFilter> filters, AopInvoker invoker) {
         this.target = target;
         this.method = method;
         this.args = args;
@@ -107,7 +107,7 @@ public class AopChain {
         this.invoker = invoker;
     }
 
-    public AopChain(Object target, Method method, Object[] args, AopFilter[] filters, Invoker invoker) {
+    public AopChain(Object target, Method method, Object[] args, AopFilter[] filters, AopInvoker invoker) {
         this(target, method, args, ListUtil.newList(filters), invoker);
     }
 

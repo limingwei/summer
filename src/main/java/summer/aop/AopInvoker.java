@@ -5,7 +5,7 @@ package summer.aop;
  * @version 1 (2015年10月11日 上午9:27:02)
  * @since Java7
  */
-public class Invoker {
+public class AopInvoker {
     /**
      * 目标对象
      */
@@ -28,7 +28,7 @@ public class Invoker {
         return args;
     }
 
-    public Invoker setArgs(Object[] args) {
+    public AopInvoker setArgs(Object[] args) {
         this.args = args;
         return this;
     }

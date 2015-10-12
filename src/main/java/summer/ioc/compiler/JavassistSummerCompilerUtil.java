@@ -4,6 +4,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 
 import summer.aop.Aop;
+import summer.aop.AopInvoker;
+import summer.aop.Transaction;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.MethodPool;
@@ -37,31 +39,8 @@ public class JavassistSummerCompilerUtil {
             src += "Object[] args = new Object[] { " + arguments(parameterTypes) + " } ;";
         }
 
-        String aopFiltersSrc = "";
-        if (null != method.getAnnotation(At.class)) {
-            String parameterAdapterClassName = ParameterAdapter.class.getName();
-            String parameterAdapterAopFilterClassName = summer.mvc.aop.ParameterAdapterAopFilter.class.getName();
-            aopFiltersSrc += "new " + parameterAdapterAopFilterClassName + "((" + parameterAdapterClassName + ")iocContext.getBean(" + parameterAdapterClassName + ".class))";
-        }
-        Aop aop = method.getAnnotation(Aop.class);
-        if (null != aop) {
-            for (String aopBeanName : aop.value()) {
-                aopFiltersSrc += " , iocContext.getBean(\"" + aopBeanName + "\")";
-            }
-        }
-        if (null != method.getAnnotation(At.class)) {
-            String viewProcessorClassName = ViewProcessor.class.getName();
-            String viewProcessorAopFilterClassName = ViewProcessorAopFilter.class.getName();
-            aopFiltersSrc += ", new " + viewProcessorAopFilterClassName + "((" + viewProcessorClassName + ")iocContext.getBean(" + viewProcessorClassName + ".class))";
-        }
-
-        if (aopFiltersSrc.isEmpty()) {
-            src += "AopFilter[] filters = new AopFilter[0];";
-        } else {
-            src += "AopFilter[] filters = new AopFilter[]{" + aopFiltersSrc + "};";
-        }
-
-        src += "Invoker invoker = new " + methodInvokerTypeName(method) + "();";
+        src += "AopFilter[] filters = " + aopFiltersSrc(method) + ";";
+        src += AopInvoker.class.getName() + " invoker = new " + methodInvokerTypeName(method) + "();";
         src += "invoker.setTarget(this);";
 
         src += "Method method = summer.ioc.MethodPool.getMethod(\"" + method.getDeclaringClass().getName() + " " + methodSignature + "\");"; // 不可为空
@@ -75,6 +54,36 @@ public class JavassistSummerCompilerUtil {
         src += "}";
         log.info("makeOverrideMethodSrc, src={}", src);
         return src;
+    }
+
+    public static String aopFiltersSrc(Method method) {
+        String aopFiltersSrc = "";
+        if (null != method.getAnnotation(At.class)) {
+            String parameterAdapterClassName = ParameterAdapter.class.getName();
+            String parameterAdapterAopFilterClassName = summer.mvc.aop.ParameterAdapterAopFilter.class.getName();
+            aopFiltersSrc += "new " + parameterAdapterAopFilterClassName + "((" + parameterAdapterClassName + ")iocContext.getBean(" + parameterAdapterClassName + ".class))";
+        }
+        Aop aop = method.getAnnotation(Aop.class);
+        if (null != aop) {
+            for (String aopBeanName : aop.value()) {
+                aopFiltersSrc += " , iocContext.getBean(\"" + aopBeanName + "\")";
+            }
+        }
+        Transaction transaction = method.getAnnotation(Transaction.class);
+        if (null != transaction) {
+            aopFiltersSrc += " , new summer.aop.TransactionAopFilter()";
+        }
+        if (null != method.getAnnotation(At.class)) {
+            String viewProcessorClassName = ViewProcessor.class.getName();
+            String viewProcessorAopFilterClassName = ViewProcessorAopFilter.class.getName();
+            aopFiltersSrc += ", new " + viewProcessorAopFilterClassName + "((" + viewProcessorClassName + ")iocContext.getBean(" + viewProcessorClassName + ".class))";
+        }
+
+        if (aopFiltersSrc.isEmpty()) {
+            return " new AopFilter[0]";
+        } else {
+            return "new AopFilter[]{" + aopFiltersSrc + "}";
+        }
     }
 
     public static String methodInvokerTypeName(Method method) {
