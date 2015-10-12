@@ -157,7 +157,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
         String invokerCtMethodSrc = "public Object invoke() { ";//
         String invokeSuperStatement = "((" + subClassName + ")getTarget()).super_" + method.getName() + "(" + JavassistSummerCompilerUtil.invokerArguments(parameterTypes) + ");";
 
-        if ("void".equals(method.getReturnType().getName())) {
+        if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
             invokerCtMethodSrc += invokeSuperStatement;
             invokerCtMethodSrc += "return null;";
         } else {

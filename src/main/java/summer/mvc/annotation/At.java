@@ -21,5 +21,5 @@ public @interface At {
 
     String[] value();
 
-    String[] method() default { GET, POST };
+    String[] method() default { GET };
 }

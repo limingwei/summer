@@ -45,4 +45,10 @@ public class Mvc {
             throw new RuntimeException(e);
         }
     }
+
+    public static String getRequestParameter(String name) {
+        HttpServletRequest request = getRequest();
+        Assert.noNull(request, "getRequestParameter error, request为空");
+        return request.getParameter(name);
+    }
 }

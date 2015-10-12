@@ -8,8 +8,8 @@ import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.MethodPool;
 import summer.log.Logger;
+import summer.mvc.ParameterAdapter;
 import summer.mvc.annotation.At;
-import summer.mvc.impl.ParameterAdapter;
 import summer.mvc.impl.ViewProcessor;
 import summer.util.Log;
 import summer.util.Reflect;
@@ -24,7 +24,7 @@ public class JavassistSummerCompilerUtil {
 
     public static String makeOverrideMethodSrc(Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
-        String returnTypeName = method.getReturnType().getName();
+        String returnTypeName = Reflect.typeToJavaCode(method.getReturnType());
 
         String methodSignature = "public " + returnTypeName + " " + method.getName() + "(" + parameters(parameterTypes) + ")";
         MethodPool.putMethod(method.getDeclaringClass().getName() + " " + methodSignature, method);
@@ -38,7 +38,9 @@ public class JavassistSummerCompilerUtil {
 
         String aopFiltersSrc = "";
         if (null != method.getAnnotation(At.class)) {
-            aopFiltersSrc += "iocContext.getBean(" + ParameterAdapter.class.getName() + ".class)";
+            String parameterAdapterClassName = ParameterAdapter.class.getName();
+            String parameterAdapterAopFilterClassName = summer.mvc.impl.ParameterAdapterAopFilter.class.getName();
+            aopFiltersSrc += "new " + parameterAdapterAopFilterClassName + "((" + parameterAdapterClassName + ")iocContext.getBean(" + parameterAdapterClassName + ".class))";
         }
         Aop aop = method.getAnnotation(Aop.class);
         if (null != aop) {
@@ -47,7 +49,8 @@ public class JavassistSummerCompilerUtil {
             }
         }
         if (null != method.getAnnotation(At.class)) {
-            aopFiltersSrc += " , iocContext.getBean(" + ViewProcessor.class.getName() + ".class)";
+            String viewProcessorClassName = ViewProcessor.class.getName();
+            aopFiltersSrc += " , iocContext.getBean(" + viewProcessorClassName + ".class)";
         }
 
         if (aopFiltersSrc.isEmpty()) {
@@ -73,12 +76,12 @@ public class JavassistSummerCompilerUtil {
     }
 
     public static String methodInvokerTypeName(Method method) {
-        String returnTypeName = method.getReturnType().getName();
+        String returnTypeName = Reflect.typeToJavaCode(method.getReturnType()).replace("[]", "_Array");
         Class<?>[] parameterTypes = method.getParameterTypes();
 
         String methodInvokerTypeName = method.getDeclaringClass().getName() + ".public_" + returnTypeName.replace('.', '_') + "_" + method.getName();
         for (int i = 0; i < parameterTypes.length; i++) {
-            methodInvokerTypeName += "_" + parameterTypes[i].getName().replace('.', '_');
+            methodInvokerTypeName += "_" + Reflect.typeToJavaCode(parameterTypes[i]).replace("[]", "_Array").replace('.', '_');
         }
         methodInvokerTypeName += "_Invoker";
         return methodInvokerTypeName;
@@ -90,14 +93,14 @@ public class JavassistSummerCompilerUtil {
             if (i > 0) {
                 src += ", ";
             }
-            src += "(" + parameterTypes[i].getName() + ")getArgs()[" + i + "]";
+            src += "(" + Reflect.typeToJavaCode(parameterTypes[i]) + ")getArgs()[" + i + "]";
         }
         return src;
     }
 
     public static String makeCallSuperMethodSrc(Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
-        String src = "public " + method.getReturnType().getName() + " super_" + method.getName() + "(" + parameters(parameterTypes) + "){";
+        String src = "public " + Reflect.typeToJavaCode(method.getReturnType()) + " super_" + method.getName() + "(" + parameters(parameterTypes) + "){";
         src += "return super." + method.getName() + "(" + arguments(parameterTypes) + ");";
         src += "}";
         return src;
@@ -108,9 +111,9 @@ public class JavassistSummerCompilerUtil {
         Class<?> fieldType = field.getType();
 
         Class<?>[] parameterTypes = method.getParameterTypes();
-        String src = "public " + method.getReturnType().getName() + " " + method.getName() + "(" + parameters(parameterTypes) + "){";
+        String src = "public " + Reflect.typeToJavaCode(method.getReturnType()) + " " + method.getName() + "(" + parameters(parameterTypes) + "){";
 
-        if ("void".equals(method.getReturnType().getName())) {
+        if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
             src += "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
         } else {
             src += "return " + "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
@@ -143,7 +146,7 @@ public class JavassistSummerCompilerUtil {
             if (i > 0) {
                 src += ", ";
             }
-            src += parameterTypes[i].getName() + " _param_" + i;
+            src += Reflect.typeToJavaCode(parameterTypes[i]) + " _param_" + i;
         }
         return src;
     }

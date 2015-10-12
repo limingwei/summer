@@ -56,8 +56,6 @@ public class SummerMvcContext implements MvcContext {
 
             List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
             for (Method method : methods) {
-                log.info("扫描Action method={}", method);
-
                 At atAnnotation = method.getAnnotation(At.class);
                 if (null != atAnnotation) {
                     String[] atAnnotationValues = atAnnotation.value();
