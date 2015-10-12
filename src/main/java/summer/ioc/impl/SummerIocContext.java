@@ -151,7 +151,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
     public boolean isBeanTypeMatch(Class<?> type, BeanDefinition beanDefinition) {
         Class<?> beanType = beanDefinition.getBeanType();
-        return type.isAssignableFrom(beanType) || // 
+        return type.isAssignableFrom(beanType) || //
                 (FactoryBean.class.isAssignableFrom(beanType) && type.isAssignableFrom((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]));
     }
 

@@ -6,6 +6,7 @@ import java.lang.reflect.Method;
 import summer.aop.Aop;
 import summer.aop.AopInvoker;
 import summer.aop.Transaction;
+import summer.aop.TransactionAopFilter;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.MethodPool;
@@ -41,7 +42,6 @@ public class JavassistSummerCompilerUtil {
 
         src += "AopFilter[] filters = " + aopFiltersSrc(method) + ";";
         src += AopInvoker.class.getName() + " invoker = new " + methodInvokerTypeName(method) + "();";
-        src += "invoker.setTarget(this);";
 
         src += "Method method = summer.ioc.MethodPool.getMethod(\"" + method.getDeclaringClass().getName() + " " + methodSignature + "\");"; // 不可为空
 
@@ -52,7 +52,6 @@ public class JavassistSummerCompilerUtil {
         }
 
         src += "}";
-        log.info("makeOverrideMethodSrc, src={}", src);
         return src;
     }
 
@@ -71,7 +70,7 @@ public class JavassistSummerCompilerUtil {
         }
         Transaction transaction = method.getAnnotation(Transaction.class);
         if (null != transaction) {
-            aopFiltersSrc += " , new summer.aop.TransactionAopFilter()";
+            aopFiltersSrc += " , iocContext.getBean(" + TransactionAopFilter.class.getName() + ".class)";
         }
         if (null != method.getAnnotation(At.class)) {
             String viewProcessorClassName = ViewProcessor.class.getName();
@@ -104,7 +103,7 @@ public class JavassistSummerCompilerUtil {
             if (i > 0) {
                 src += ", ";
             }
-            src += "(" + Reflect.typeToJavaCode(parameterTypes[i]) + ")getArgs()[" + i + "]";
+            src += "(" + Reflect.typeToJavaCode(parameterTypes[i]) + ")args[" + i + "]";
         }
         return src;
     }

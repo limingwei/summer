@@ -28,7 +28,7 @@ public class JavassistUtil {
         }
     }
 
-    public static void setSuperclass(CtClass ctClass, CtClass superCtClass) {
+    public static void ctClassSetSuperclass(CtClass ctClass, CtClass superCtClass) {
         try {
             ctClass.setSuperclass(superCtClass);
         } catch (CannotCompileException e) {

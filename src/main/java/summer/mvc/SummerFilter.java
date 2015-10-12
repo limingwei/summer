@@ -11,11 +11,14 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import summer.ioc.IocContext;
+import summer.ioc.IocLoader;
+import summer.ioc.impl.SummerIocContext;
+import summer.ioc.loader.AnnotationIocLoader;
+import summer.ioc.loader.ComplexIocLoader;
+import summer.ioc.loader.XmlIocLoader;
 import summer.log.Logger;
-import summer.mvc.impl.SummerActionInvokeService;
-import summer.mvc.impl.SummerMvcContext;
 import summer.util.Log;
+import summer.util.Stream;
 
 /**
  * @author li
@@ -25,52 +28,32 @@ import summer.util.Log;
 public class SummerFilter implements Filter {
     private static final Logger log = Log.slf4j();
 
-    private IocContext iocContext;
+    public static final String SUMMER_CONFIG_INIT_PARAMETER_NAME = "summerConfig";
 
-    private MvcContext mvcContext;
+    private SummerDispatcher summerDispatcher;
 
-    private ActionInvokeService actionInvokeService;
-
-    public IocContext getIocContext() {
-        return iocContext;
-    }
-
-    public MvcContext getMvcContext() {
-        if (null == mvcContext) {
-            mvcContext = new SummerMvcContext(getIocContext());
+    public void init(FilterConfig filterConfig) throws ServletException {
+        String summerConfig = filterConfig.getInitParameter(SUMMER_CONFIG_INIT_PARAMETER_NAME);
+        if (null == summerConfig || summerConfig.isEmpty()) {
+            summerConfig = "summer.xml";
         }
-        return mvcContext;
-    }
+        String configFilePath = Thread.currentThread().getContextClassLoader().getResource("").getPath() + summerConfig;
+        log.info("init() configFilePath=" + configFilePath);
 
-    public ActionInvokeService getActionInvokeService() {
-        if (null == actionInvokeService) {
-            actionInvokeService = new SummerActionInvokeService(getIocContext());
-        }
-        return actionInvokeService;
+        XmlIocLoader xmlIocLoader = new XmlIocLoader(Stream.newFileInputStream(configFilePath));
+        ComplexIocLoader iocLoader = new ComplexIocLoader(new IocLoader[] { new AnnotationIocLoader(), xmlIocLoader });
+        summerDispatcher = new SummerDispatcher(new SummerIocContext(iocLoader));
     }
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-        Mvc.setRequest(request);
-        Mvc.setResponse(response);
-
-        HttpServletRequest httpServletRequest = (HttpServletRequest) request;
-        HttpServletResponse httpServletResponse = (HttpServletResponse) response;
-
-        ActionHandler actionHandler = getMvcContext().getActionHandler(httpServletRequest);
-        if (null != actionHandler) {
-            getActionInvokeService().invokeAction(actionHandler);
+        if (summerDispatcher.doDispatch((HttpServletRequest) request, (HttpServletResponse) response)) {
+            //
         } else {
-            String servletPath = httpServletRequest.getServletPath();
-            String method = httpServletRequest.getMethod();
-
-            log.info("action not found, servletPath=" + servletPath + ", method=" + method);
-
-            httpServletResponse.getWriter().append("action not found, servletPath=" + servletPath + ", method=" + method);
-            httpServletResponse.setStatus(404);
+            chain.doFilter(request, response);
         }
     }
 
-    public void init(FilterConfig filterConfig) throws ServletException {}
-
-    public void destroy() {}
+    public void destroy() {
+        log.info("destroy()");
+    }
 }

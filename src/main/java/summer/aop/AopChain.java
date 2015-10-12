@@ -128,7 +128,7 @@ public class AopChain {
      */
     public AopChain invoke() {
         try {
-            setResult(getInvoker().setArgs(getArgs()).invoke());
+            setResult(getInvoker().invoke(getTarget(), getArgs()));
         } catch (Throwable e) {
             throw new RuntimeException(e + " ", e);
         }

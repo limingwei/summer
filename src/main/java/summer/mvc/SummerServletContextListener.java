@@ -1,17 +1,17 @@
 package summer.mvc;
 
-import java.io.IOException;
 import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.DispatcherType;
-import javax.servlet.FilterChain;
 import javax.servlet.FilterRegistration.Dynamic;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
+
+import summer.log.Logger;
+import summer.util.Log;
 
 /**
  * @author li
@@ -19,28 +19,27 @@ import javax.servlet.ServletResponse;
  * @since Java7
  */
 public class SummerServletContextListener implements ServletContextListener {
-    public void contextInitialized(ServletContextEvent servletContextEvent) {
-        addHelloWorldForAllRequest(servletContextEvent);
-    }
+    private static final Logger log = Log.slf4j();
 
-    public void addHelloWorldForAllRequest(ServletContextEvent servletContextEvent) {
+    public void contextInitialized(ServletContextEvent servletContextEvent) {
+        log.info("contextInitialized, servletContextEvent=" + servletContextEvent);
+
         ServletContext servletContext = servletContextEvent.getServletContext();
 
-        Dynamic dynamic = servletContext.addFilter("HelloWorldSummerFilter", new SummerFilter() {
-            public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-                response.getWriter().write("hello world, summer, https://github.com/limingwei/summer");
-            }
-        });
+        Dynamic dynamic = servletContext.addFilter("summerFilter", SummerFilter.class.getName());
 
-        EnumSet<DispatcherType> dispatcherTypes = EnumSet.allOf(DispatcherType.class);
-        dispatcherTypes.add(DispatcherType.REQUEST);
-        dispatcherTypes.add(DispatcherType.FORWARD);
-        dispatcherTypes.add(DispatcherType.INCLUDE);
+        Map<String, String> initParameters = new HashMap<String, String>();
+        String value = servletContextEvent.getServletContext().getInitParameter(SummerFilter.SUMMER_CONFIG_INIT_PARAMETER_NAME);
+        if (null != value && !value.isEmpty()) {
+            initParameters.put(SummerFilter.SUMMER_CONFIG_INIT_PARAMETER_NAME, value);
+        }
+        dynamic.setInitParameters(initParameters);
 
-        boolean isMatchAfter = true;
-        String[] urlPatterns = { "/*" };
-        dynamic.addMappingForUrlPatterns(dispatcherTypes, isMatchAfter, urlPatterns);
+        EnumSet<DispatcherType> dispatcherTypes = EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE);
+        dynamic.addMappingForUrlPatterns(dispatcherTypes, true, new String[] { "/*" });
     }
 
-    public void contextDestroyed(ServletContextEvent sce) {}
+    public void contextDestroyed(ServletContextEvent servletContextEvent) {
+        log.info("contextDestroyed, servletContextEvent=" + servletContextEvent);
+    }
 }

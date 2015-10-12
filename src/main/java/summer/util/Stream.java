@@ -1,7 +1,9 @@
 package summer.util;
 
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.InputStream;
 
 /**
  * @author li
@@ -12,6 +14,14 @@ public class Stream {
     public static FileOutputStream newFileOutputStream(String fileName) {
         try {
             return new FileOutputStream(fileName);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static InputStream newFileInputStream(String fileName) {
+        try {
+            return new FileInputStream(fileName);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(e);
         }

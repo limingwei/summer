@@ -40,7 +40,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
         String subClassName = originalTypeName + "_JavassistSummerCompiler_Aop";
         CtClass ctClass = classPool.makeClass(subClassName);
         CtClass superCtClass = JavassistUtil.getCtClass(classPool, originalTypeName);
-        JavassistUtil.setSuperclass(ctClass, superCtClass);
+        JavassistUtil.ctClassSetSuperclass(ctClass, superCtClass);
 
         // IocContextAware
         CtClass iocContextAwareCtClass = JavassistUtil.getCtClass(classPool, IocContextAware.class.getName());
@@ -79,7 +79,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
         if (fieldType.isInterface()) {
             ctClass.addInterface(fieldTypeCtClass);
         } else {
-            JavassistUtil.setSuperclass(ctClass, fieldTypeCtClass);
+            JavassistUtil.ctClassSetSuperclass(ctClass, fieldTypeCtClass);
         }
 
         // IocContextAware
@@ -153,12 +153,12 @@ public class JavassistSummerCompiler implements SummerCompiler {
     private void makeInvokerClass(ClassPool classPool, String subClassName, Method method) {
         String methodInvokerTypeName = JavassistSummerCompilerUtil.methodInvokerTypeName(method);
         CtClass invokerCtClass = classPool.makeClass(methodInvokerTypeName);
-        CtClass invokerSuperCtClass = JavassistUtil.getCtClass(classPool, AopInvoker.class.getName());
-        JavassistUtil.setSuperclass(invokerCtClass, invokerSuperCtClass);
+        CtClass aopInvokerCtClass = JavassistUtil.getCtClass(classPool, AopInvoker.class.getName());
+        invokerCtClass.addInterface(aopInvokerCtClass);
 
         Class<?>[] parameterTypes = method.getParameterTypes();
-        String invokerCtMethodSrc = "public Object invoke() { ";//
-        String invokeSuperStatement = "((" + subClassName + ")getTarget()).super_" + method.getName() + "(" + JavassistSummerCompilerUtil.invokerArguments(parameterTypes) + ");";
+        String invokerCtMethodSrc = "public Object invoke(Object target, Object[] args) { ";//
+        String invokeSuperStatement = "((" + subClassName + ")target).super_" + method.getName() + "(" + JavassistSummerCompilerUtil.invokerArguments(parameterTypes) + ");";
 
         if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
             invokerCtMethodSrc += invokeSuperStatement;

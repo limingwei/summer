@@ -52,8 +52,6 @@ public class SummerMvcContext implements MvcContext {
         List<BeanDefinition> beanDefinitions = getIocContext().getBeanDefinitions();
 
         for (BeanDefinition beanDefinition : beanDefinitions) {
-            log.info("扫描Action beanDefinition={}", beanDefinition);
-
             List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
             for (Method method : methods) {
                 At atAnnotation = method.getAnnotation(At.class);
