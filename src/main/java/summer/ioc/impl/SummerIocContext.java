@@ -11,6 +11,7 @@ import summer.converter.ConvertService;
 import summer.converter.impl.SummerConvertService;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
+import summer.ioc.FactoryBean;
 import summer.ioc.IocContext;
 import summer.ioc.IocContextAware;
 import summer.ioc.IocLoader;
@@ -27,7 +28,7 @@ import summer.util.Reflect;
  * @version 1 (2015年10月10日 上午10:33:37)
  * @since Java7
  */
-@SuppressWarnings("unchecked")
+@SuppressWarnings({ "unchecked", "rawtypes" })
 public class SummerIocContext extends AbstractSummerIocContext {
     private static final Logger log = Log.slf4j();
 
@@ -68,14 +69,14 @@ public class SummerIocContext extends AbstractSummerIocContext {
         BeanDefinition beanDefinition = findMatchBeanDefinition(type);
         Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", beanDefinitions=" + beanDefinitions);
 
-        return (T) getBeanInstance(beanDefinition);
+        return (T) unwrapFactoryBean(getBeanInstance(beanDefinition));
     }
 
     public Object doGetBean(String id) {
         BeanDefinition beanDefinition = findMatchBeanDefinition(id);
         Assert.noNull(beanDefinition, "not found BeanDefinition for id " + id + ", beanDefinitions=" + beanDefinitions);
 
-        return getBeanInstance(beanDefinition);
+        return unwrapFactoryBean(getBeanInstance(beanDefinition));
     }
 
     public <T> T doGetBean(Class<T> type, String id) {
@@ -85,7 +86,15 @@ public class SummerIocContext extends AbstractSummerIocContext {
             BeanDefinition beanDefinition = findMatchBeanDefinition(type, id);
             Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", id=" + id + ", beanDefinitions=" + beanDefinitions);
 
-            return (T) getBeanInstance(beanDefinition);
+            return (T) unwrapFactoryBean(getBeanInstance(beanDefinition));
+        }
+    }
+
+    private Object unwrapFactoryBean(Object beanInstance) {
+        if (beanInstance instanceof FactoryBean) {
+            return ((FactoryBean) beanInstance).getObject();
+        } else {
+            return beanInstance;
         }
     }
 
@@ -124,7 +133,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
         Assert.noEmpty(id, "id 不可以为空");
 
         for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (type.isAssignableFrom(beanDefinition.getBeanType()) && id.equals(beanDefinition.getId())) {
+            if (isBeanTypeMatch(type, beanDefinition) && id.equals(beanDefinition.getId())) {
                 return beanDefinition;
             }
         }
@@ -133,11 +142,17 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
     private BeanDefinition findMatchBeanDefinition(Class<?> type) {
         for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (type.isAssignableFrom(beanDefinition.getBeanType())) {
+            if (isBeanTypeMatch(type, beanDefinition)) {
                 return beanDefinition;
             }
         }
         return null;
+    }
+
+    public boolean isBeanTypeMatch(Class<?> type, BeanDefinition beanDefinition) {
+        Class<?> beanType = beanDefinition.getBeanType();
+        return type.isAssignableFrom(beanType) || // 
+                (FactoryBean.class.isAssignableFrom(beanType) && type.isAssignableFrom((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]));
     }
 
     private BeanDefinition findMatchBeanDefinition(String id) {

@@ -36,13 +36,11 @@ public class ParameterAdapterAopFilter implements AopFilter {
             List<String> parameterNameList = MethodParamNamesScaner.getParamNames(method);
             String[] parameterNames = parameterNameList.toArray(new String[parameterNameList.size()]);
             Class<?>[] parameterTypes = method.getParameterTypes();
-
             HttpServletRequest request = Mvc.getRequest();
 
             Object[] args = parameterAdapter.adapt(request, parameterNames, parameterTypes);
 
             chain.setArgs(args);
-
             chain.doFilter();
         } else {
             chain.doFilter();

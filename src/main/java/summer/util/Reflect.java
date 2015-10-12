@@ -14,10 +14,26 @@ import java.util.List;
  * @since Java7
  */
 public class Reflect {
-    public static Type[] getActualTypeArguments(Class<?> type) {
+    public static Type[] getGenericSuperclassActualTypeArguments(Class<?> type) {
         Type genericSuperclass = type.getGenericSuperclass();
-        ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
-        return parameterizedType.getActualTypeArguments();
+        if (genericSuperclass instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) genericSuperclass;
+            return parameterizedType.getActualTypeArguments();
+        }
+        throw new RuntimeException("type=" + type + ", type.getGenericSuperclass()=" + genericSuperclass + ", is not ParameterizedType");
+    }
+
+    public static Type[] getGenericInterfacesActualTypeArguments(Class<?> type, Class<?> genericInterfaceType) {
+        Type[] genericInterfaces = type.getGenericInterfaces();
+        for (Type genericInterface : genericInterfaces) {
+            if (genericInterface instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) genericInterface;
+                if (genericInterfaceType.equals(parameterizedType.getRawType())) {
+                    return parameterizedType.getActualTypeArguments();
+                }
+            }
+        }
+        throw new RuntimeException("ParameterizedType not found, type=" + type + ", genericInterfaceType=" + genericInterfaceType);
     }
 
     public static String typeToJavaCode(Class<?> type) {

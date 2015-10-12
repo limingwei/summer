@@ -14,14 +14,14 @@ import summer.util.Reflect;
 @SuppressWarnings("unchecked")
 public abstract class AbstractConverter<From, To> implements Converter<From, To> {
     public Class<From> getFromType() {
-        Type[] actualTypeArguments = Reflect.getActualTypeArguments(getClass());
+        Type[] actualTypeArguments = Reflect.getGenericSuperclassActualTypeArguments(getClass());
         Type type = actualTypeArguments[0];
         Class<From> typeFrom = (Class<From>) type;
         return typeFrom;
     }
 
     public Class<To> getToType() {
-        Type[] actualTypeArguments = Reflect.getActualTypeArguments(getClass());
+        Type[] actualTypeArguments = Reflect.getGenericSuperclassActualTypeArguments(getClass());
         Type type = actualTypeArguments[1];
         Class<To> typeTo = (Class<To>) type;
         return typeTo;
