@@ -37,4 +37,8 @@ public class BeanDefinition {
     public void setBeanType(Class<?> beanType) {
         this.beanType = beanType;
     }
+
+    public String toString() {
+        return super.toString() + ", id=" + getId() + ", beanType=" + getBeanType();
+    }
 }

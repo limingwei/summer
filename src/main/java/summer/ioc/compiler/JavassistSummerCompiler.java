@@ -51,7 +51,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
         addReferenceTargetField(ctClass);
         addReferenceTargetFieldGetter(ctClass, beanDefinition, beanField);
 
-        List<Method> methods = CompilerUtil.getOriginalPublicMethods(fieldType);
+        List<Method> methods = Reflect.getPublicMethods(fieldType);
         for (Method method : methods) {
             // makeCallDelegateOverrideMethod
             makeCallDelegateOverrideMethod(ctClass, method, beanDefinition, beanField);
@@ -119,7 +119,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
         CtClass superCtClass = JavassistUtil.getCtClass(classPool, originalTypeName);
         JavassistUtil.setSuperclass(ctClass, superCtClass);
 
-        List<Method> methods = CompilerUtil.getOriginalPublicMethods(originalType);
+        List<Method> methods = Reflect.getPublicMethods(originalType);
         for (Method method : methods) {
             // make callSuperMethod
             makeCallSuperMethod(ctClass, method);

@@ -10,16 +10,10 @@ import summer.mvc.ActionHandler;
  * @since Java7
  */
 public class MethodActionHandler implements ActionHandler {
-    private String target;
-
     private Method method;
 
-    public String getTarget() {
-        return target;
-    }
-
-    public void setTarget(String target) {
-        this.target = target;
+    public MethodActionHandler(Method method) {
+        this.method = method;
     }
 
     public Method getMethod() {

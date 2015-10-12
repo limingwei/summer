@@ -7,6 +7,8 @@ import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.MethodPool;
 import summer.log.Logger;
+import summer.mvc.impl.ParameterAdapter;
+import summer.mvc.impl.ViewProcessor;
 import summer.util.Log;
 import summer.util.Reflect;
 
@@ -32,7 +34,8 @@ public class JavassistSummerCompilerUtil {
             src += "Object[] args = new Object[] { " + arguments(parameterTypes) + " } ;";
         }
 
-        src += "AopFilter[] filters = new AopFilter[]{new summer.aop.LoggerAopFilter()};";
+        src += "AopFilter[] filters = new AopFilter[]{" + "new " + ParameterAdapter.class.getName() + "(), new " + ViewProcessor.class.getName() + "()};";
+
         src += "Invoker invoker = new " + methodInvokerTypeName(method) + "();";
         src += "invoker.setTarget(this);";
 

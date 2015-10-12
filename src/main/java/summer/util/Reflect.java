@@ -2,6 +2,9 @@ package summer.util;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author li
@@ -9,6 +12,19 @@ import java.lang.reflect.Method;
  * @since Java7
  */
 public class Reflect {
+    public static List<Method> getPublicMethods(Class<?> originalType) {
+        List<Method> list = new ArrayList<Method>();
+        Method[] methods = originalType.getMethods();
+        for (Method method : methods) {
+            if (!method.getDeclaringClass().equals(Object.class) //
+                    && !Modifier.isStatic(method.getModifiers())//
+                    && !Modifier.isFinal(method.getModifiers())) {
+                list.add(method);
+            }
+        }
+        return list;
+    }
+
     public static Class<?> classForName(String typeName) {
         try {
             return Class.forName(typeName);

@@ -11,7 +11,7 @@ public class MethodActionInvoker implements ActionInvoker<MethodActionHandler> {
     public Object invokeAction(MethodActionHandler methodActionHandler) {
         Object[] args = new Object[] {};
         try {
-            return methodActionHandler.getMethod().invoke(methodActionHandler.getTarget(), args);
+            return methodActionHandler.getMethod().invoke("methodActionHandler.getTarget()", args);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
