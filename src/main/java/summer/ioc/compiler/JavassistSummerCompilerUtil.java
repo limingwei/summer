@@ -8,9 +8,10 @@ import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.MethodPool;
 import summer.log.Logger;
-import summer.mvc.adapter.ParameterAdapter;
+import summer.mvc.ParameterAdapter;
+import summer.mvc.ViewProcessor;
 import summer.mvc.annotation.At;
-import summer.mvc.impl.ViewProcessor;
+import summer.mvc.aop.ViewProcessorAopFilter;
 import summer.util.Log;
 import summer.util.Reflect;
 
@@ -50,7 +51,8 @@ public class JavassistSummerCompilerUtil {
         }
         if (null != method.getAnnotation(At.class)) {
             String viewProcessorClassName = ViewProcessor.class.getName();
-            aopFiltersSrc += " , iocContext.getBean(" + viewProcessorClassName + ".class)";
+            String viewProcessorAopFilterClassName = ViewProcessorAopFilter.class.getName();
+            aopFiltersSrc += ", new " + viewProcessorAopFilterClassName + "((" + viewProcessorClassName + ")iocContext.getBean(" + viewProcessorClassName + ".class))";
         }
 
         if (aopFiltersSrc.isEmpty()) {

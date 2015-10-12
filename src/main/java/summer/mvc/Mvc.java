@@ -51,4 +51,20 @@ public class Mvc {
         Assert.noNull(request, "getRequestParameter error, request为空");
         return request.getParameter(name);
     }
+
+    public static void redirect(String location) {
+        try {
+            getResponse().sendRedirect(location);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static void forward(String path) {
+        try {
+            getRequest().getRequestDispatcher(path).forward(getRequest(), getResponse());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

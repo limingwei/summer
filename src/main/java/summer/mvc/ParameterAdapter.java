@@ -1,4 +1,4 @@
-package summer.mvc.adapter;
+package summer.mvc;
 
 import javax.servlet.http.HttpServletRequest;
 

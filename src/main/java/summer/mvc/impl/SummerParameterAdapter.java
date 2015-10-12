@@ -1,9 +1,9 @@
-package summer.mvc.adapter.impl;
+package summer.mvc.impl;
 
 import javax.servlet.http.HttpServletRequest;
 
 import summer.converter.ConvertService;
-import summer.mvc.adapter.ParameterAdapter;
+import summer.mvc.ParameterAdapter;
 
 /**
  * @author li
