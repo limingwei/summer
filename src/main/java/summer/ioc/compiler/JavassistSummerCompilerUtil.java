@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import summer.aop.Aop;
-import summer.aop.AopInvoker;
 import summer.aop.Transaction;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
@@ -21,23 +20,6 @@ import summer.util.StringUtil;
  * @since Java7
  */
 public class JavassistSummerCompilerUtil {
-    public static String buildInvokerClassSrc(String subClassName, Method method) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-
-        String invokerCtMethodSrc = "public Object invoke(Object target, Object[] args) { ";//
-        String invokeSuperStatement = "((" + subClassName + ")target).super_" + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(parameterTypes) + ");";
-
-        if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
-            invokerCtMethodSrc += invokeSuperStatement;
-            invokerCtMethodSrc += "return null;";
-        } else {
-            invokerCtMethodSrc += " return " + invokeSuperStatement;
-        }
-
-        invokerCtMethodSrc += " } ";
-        return invokerCtMethodSrc;
-    }
-
     public static String buildReferenceTargetFieldGetterSrc(BeanDefinition beanDefinition, BeanField beanField) {
         String referenceTargetFieldGetterSrc = "public java.lang.Object getReferenceTarget() { ";
         referenceTargetFieldGetterSrc += " if(null==this.referenceTarget) { ";
@@ -72,14 +54,13 @@ public class JavassistSummerCompilerUtil {
         }
 
         src += "AopFilter[] filters = " + _aop_filters_src(method) + ";";
-        src += AopInvoker.class.getName() + " invoker = new " + methodInvokerTypeName(method) + "();";
 
         src += "Method method = summer.ioc.MethodPool.getMethod(\"" + method.getDeclaringClass().getName() + " " + methodSignature + "\");"; // 不可为空
 
         if ("void".equals(returnTypeName)) {
-            src += "new AopChain(this, method, args, filters, invoker).doFilter();";
+            src += "new AopChain(this, method, args, filters).doFilter();";
         } else {
-            src += "return (" + returnTypeName + ")new AopChain(this, method, args, filters, invoker).doFilter().getResult();";
+            src += "return (" + returnTypeName + ")new AopChain(this, method, args, filters).doFilter().getResult();";
         }
 
         src += "}";
@@ -127,7 +108,7 @@ public class JavassistSummerCompilerUtil {
         return methodInvokerTypeName;
     }
 
-    private static String _invoker_arguments(Class<?>[] parameterTypes) {
+    public static String _invoker_arguments(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {
@@ -187,25 +168,6 @@ public class JavassistSummerCompilerUtil {
                 src += ", ";
             }
             src += Reflect.typeToJavaCode(parameterTypes[i]) + " _param_" + i;
-        }
-        return src;
-    }
-
-    private static String _parameters_2(Class<?>[] parameterTypes) {
-        String src = "";
-        for (int i = 0; i < parameterTypes.length; i++) {
-            if (i > 0) {
-                src += ", ";
-            }
-            if (int.class == parameterTypes[i]) {
-                src += Integer.class.getName() + " _param_" + i;
-            } else if (boolean.class == parameterTypes[i]) {
-                src += Boolean.class.getName() + " _param_" + i;
-            } else if (long.class == parameterTypes[i]) {
-                src += Long.class.getName() + " _param_" + i;
-            } else {
-                src += typeToJavaCode_2(parameterTypes[i]) + " _param_" + i;
-            }
         }
         return src;
     }

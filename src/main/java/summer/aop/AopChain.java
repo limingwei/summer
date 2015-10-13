@@ -3,6 +3,7 @@ package summer.aop;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import summer.aop.util.MethodInvokerPool;
 import summer.util.ListUtil;
 import summer.util.StringUtil;
 
@@ -32,8 +33,6 @@ public class AopChain {
      */
     private Object result;
 
-    private AopInvoker invoker;
-
     /**
      * AopFilter列表
      */
@@ -43,14 +42,6 @@ public class AopChain {
      * AopFilter索引,指示当前执行到filter链中的第几个filter
      */
     private int _index = 0;
-
-    public AopInvoker getInvoker() {
-        return invoker;
-    }
-
-    public void setInvoker(AopInvoker invoker) {
-        this.invoker = invoker;
-    }
 
     /**
      * 返回被代理方法宿主对象
@@ -99,16 +90,15 @@ public class AopChain {
     /**
      * 初始化一个AopChain
      */
-    public AopChain(Object target, Method method, Object[] args, List<AopFilter> filters, AopInvoker invoker) {
+    public AopChain(Object target, Method method, Object[] args, List<AopFilter> filters) {
         this.target = target;
         this.method = method;
         this.args = args;
         this._filters = filters;
-        this.invoker = invoker;
     }
 
-    public AopChain(Object target, Method method, Object[] args, AopFilter[] filters, AopInvoker invoker) {
-        this(target, method, args, ListUtil.newList(filters), invoker);
+    public AopChain(Object target, Method method, Object[] args, AopFilter[] filters) {
+        this(target, method, args, ListUtil.newList(filters));
     }
 
     /**
@@ -128,7 +118,7 @@ public class AopChain {
      */
     public AopChain invoke() {
         try {
-            setResult(getInvoker().invoke(getTarget(), getArgs()));
+            setResult(MethodInvokerPool.getMethodInvoker(getMethod()).invoke(getTarget(), getArgs()));
         } catch (Throwable e) {
             throw new RuntimeException(e + " ", e);
         }
@@ -136,6 +126,6 @@ public class AopChain {
     }
 
     public String toString() {
-        return super.toString() + ", target=" + getTarget() + ", method=" + getMethod() + ", args=[" + StringUtil.join(getArgs(), ", ") + "], result=" + getResult() + ", invoker=" + getInvoker() + ", filters=" + _filters + ", index=" + _index;
+        return super.toString() + ", target=" + getTarget() + ", method=" + getMethod() + ", args=[" + StringUtil.join(getArgs(), ", ") + "], result=" + getResult() + ", filters=" + _filters + ", index=" + _index;
     }
 }

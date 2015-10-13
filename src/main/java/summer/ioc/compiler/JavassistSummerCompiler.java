@@ -11,7 +11,6 @@ import javassist.CtMethod;
 import javassist.LoaderClassPath;
 import summer.aop.AopChain;
 import summer.aop.AopFilter;
-import summer.aop.AopInvoker;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocContextAware;
@@ -38,7 +37,6 @@ public class JavassistSummerCompiler implements SummerCompiler {
 
         classPool.importPackage(Method.class.getName());
         classPool.importPackage(AopFilter.class.getName());
-        classPool.importPackage(AopInvoker.class.getName());
         classPool.importPackage(AopChain.class.getName());
 
         String subClassName = originalTypeName + "_JavassistSummerCompiler_Aop";
@@ -56,8 +54,6 @@ public class JavassistSummerCompiler implements SummerCompiler {
         List<Method> methods = Reflect.getPublicMethods(originalType);
         for (Method method : methods) {
             addCallSuperMethod(ctClass, method);
-
-            addInvokerClass(classPool, subClassName, method);
 
             addOverrideMethod(ctClass, method);
         }
@@ -136,20 +132,6 @@ public class JavassistSummerCompiler implements SummerCompiler {
         String overrideMethodSrc = JavassistSummerCompilerUtil.buildOverrideMethodSrc(method);
         CtMethod overrideSuperMethod = JavassistUtil.ctNewMethodMake(overrideMethodSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, overrideSuperMethod);
-    }
-
-    private void addInvokerClass(ClassPool classPool, String subClassName, Method method) {
-        String methodInvokerTypeName = JavassistSummerCompilerUtil.methodInvokerTypeName(method);
-        CtClass invokerCtClass = classPool.makeClass(methodInvokerTypeName);
-        CtClass aopInvokerCtClass = JavassistUtil.getCtClass(classPool, AopInvoker.class.getName());
-        invokerCtClass.addInterface(aopInvokerCtClass);
-
-        String invokerCtMethodSrc = JavassistSummerCompilerUtil.buildInvokerClassSrc(subClassName, method);
-
-        CtMethod invokerCtMethod = JavassistUtil.ctNewMethodMake(invokerCtMethodSrc, invokerCtClass);
-        JavassistUtil.ctClassAddMethod(invokerCtClass, invokerCtMethod);
-
-        JavassistUtil.ctClassToClass(invokerCtClass);
     }
 
     private void addCallSuperMethod(CtClass ctClass, Method method) {
