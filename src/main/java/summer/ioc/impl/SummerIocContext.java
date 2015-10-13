@@ -2,7 +2,6 @@ package summer.ioc.impl;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +50,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         this.iocLoader = iocLoader;
 
-        this.beanDefinitions = new ArrayList<BeanDefinition>();
-        this.beanDefinitions.addAll(iocLoader.getBeanDefinitions());
+        this.beanDefinitions = SummerIocContextUtil.mergeBeanDefinitions(iocLoader.getBeanDefinitions());
 
         this.convertService = new SummerConvertService();
 
@@ -110,11 +108,11 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
                 if (BeanField.INJECT_TYPE_VALUE.equals(beanField.getInjectType())) {
-                    Field field = Reflect.getField(beanType, beanField.getName());
+                    Field field = Reflect.getDeclaredField(beanType, beanField.getName());
                     Object value = convertService.convert(String.class, field.getType(), beanField.getValue());
                     Reflect.setFieldValue(beanInstance, field, value);
                 } else if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) {
-                    Field field = Reflect.getField(beanType, beanField.getName());
+                    Field field = Reflect.getDeclaredField(beanType, beanField.getName());
                     IocContextAware value = (IocContextAware) newReferenceInstance(beanDefinition, beanField);
                     value.setIocContext(this);
                     Reflect.setFieldValue(beanInstance, field, value);

@@ -16,6 +16,8 @@ public class BeanField {
 
     private String value;
 
+    public BeanField() {}
+
     public BeanField(String injectType, String name, String value) {
         this.injectType = injectType;
         this.name = name;

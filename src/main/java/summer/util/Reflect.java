@@ -6,6 +6,7 @@ import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -82,7 +83,16 @@ public class Reflect {
         }
     }
 
-    public static Field getField(Class<?> targetType, String name) {
+    public static Object invokeMethod(Object target, Method method, Object[] args) {
+        try {
+            method.setAccessible(true);
+            return method.invoke(target, args);
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public static Field getDeclaredField(Class<?> targetType, String name) {
         try {
             return targetType.getDeclaredField(name);
         } catch (NoSuchFieldException e) {
@@ -92,12 +102,14 @@ public class Reflect {
         }
     }
 
-    public static Object invokeMethod(Object target, Method method, Object[] args) {
-        try {
-            method.setAccessible(true);
-            return method.invoke(target, args);
-        } catch (Throwable e) {
-            throw new RuntimeException(e);
+    public static List<Field> getDeclaredFields(Class<?> type) {
+        List<Field> fields = new ArrayList<Field>();
+        fields.addAll(Arrays.asList(type.getDeclaredFields()));
+
+        Class<?> superType = type.getSuperclass();
+        if (!Object.class.equals(superType)) {
+            fields.addAll(getDeclaredFields(superType));
         }
+        return fields;
     }
 }

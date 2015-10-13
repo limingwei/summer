@@ -24,6 +24,7 @@ import summer.util.Xml;
  */
 public class XmlIocLoader implements IocLoader {
     private static final Logger log = Log.slf4j();
+
     private InputStream inputStream;
 
     public XmlIocLoader(InputStream inputStream) {
@@ -56,7 +57,7 @@ public class XmlIocLoader implements IocLoader {
         Node idNode = attributes.getNamedItem("id");
         String beanId;
         if (null == idNode) {
-            beanId = beanType.getName();
+            beanId = beanType.getName(); // 默认Bean名称为type.name
         } else {
             beanId = idNode.getNodeValue();
         }

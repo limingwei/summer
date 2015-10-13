@@ -67,7 +67,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
     }
 
     public Class<?> compileReference(BeanDefinition beanDefinition, BeanField beanField) {
-        Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
+        Field field = Reflect.getDeclaredField(beanDefinition.getBeanType(), beanField.getName());
 
         Class<?> fieldType = field.getType();
         String fieldTypeName = fieldType.getName();

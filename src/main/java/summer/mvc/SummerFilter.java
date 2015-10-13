@@ -41,7 +41,8 @@ public class SummerFilter implements Filter {
         log.info("init() configFilePath=" + configFilePath);
 
         XmlIocLoader xmlIocLoader = new XmlIocLoader(Stream.newFileInputStream(configFilePath));
-        ComplexIocLoader iocLoader = new ComplexIocLoader(new IocLoader[] { new AnnotationIocLoader(), xmlIocLoader });
+        AnnotationIocLoader annotationIocLoader = new AnnotationIocLoader(new String[] {});
+        ComplexIocLoader iocLoader = new ComplexIocLoader(new IocLoader[] { annotationIocLoader, xmlIocLoader });
         summerDispatcher = new SummerDispatcher(new SummerIocContext(iocLoader));
     }
 

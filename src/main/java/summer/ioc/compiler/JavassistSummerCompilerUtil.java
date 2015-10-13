@@ -43,7 +43,7 @@ public class JavassistSummerCompilerUtil {
         String referenceTargetFieldGetterSrc = "public java.lang.Object getReferenceTarget() { ";
         referenceTargetFieldGetterSrc += " if(null==this.referenceTarget) { ";
 
-        Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
+        Field field = Reflect.getDeclaredField(beanDefinition.getBeanType(), beanField.getName());
         Class<?> fieldType = field.getType();
         String beanFieldValue = beanField.getValue();
         if (null == beanFieldValue || beanFieldValue.isEmpty()) {
@@ -149,7 +149,7 @@ public class JavassistSummerCompilerUtil {
     }
 
     public static String buildCallDelegateOverrideMethodSrc(Method method, BeanDefinition beanDefinition, BeanField beanField) {
-        Field field = Reflect.getField(beanDefinition.getBeanType(), beanField.getName());
+        Field field = Reflect.getDeclaredField(beanDefinition.getBeanType(), beanField.getName());
         Class<?> fieldType = field.getType();
 
         Class<?>[] parameterTypes = method.getParameterTypes();
