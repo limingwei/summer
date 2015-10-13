@@ -2,7 +2,6 @@ package summer.mvc.mock;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Writer;
 import java.util.Locale;
 
 import javax.servlet.ServletOutputStream;
@@ -21,18 +20,14 @@ class MockServletResponse implements ServletResponse {
 
     private String contentType;
 
-    private Writer writer;
+    private PrintWriter writer;
 
-    public void setWritter(Writer writer) {
+    public void setWritter(PrintWriter writer) {
         this.writer = writer;
     }
 
-    @SuppressWarnings("resource")
     public PrintWriter getWriter() throws IOException {
-        if (!(null != this.writer && this.writer instanceof PrintWriter)) {
-            this.writer = new PrintWriter(null == this.writer ? new NullWriter() : this.writer);
-        }
-        return (PrintWriter) this.writer;
+        return this.writer;
     }
 
     public ServletOutputStream getOutputStream() throws IOException {
