@@ -15,7 +15,7 @@ import summer.util.Log;
  * @version 1 (2015年10月12日 下午10:57:30)
  * @since Java7
  */
-class MockRequestDispatcher implements RequestDispatcher {
+public class MockRequestDispatcher implements RequestDispatcher {
     private static final Logger log = Log.slf4j();
 
     private String path;

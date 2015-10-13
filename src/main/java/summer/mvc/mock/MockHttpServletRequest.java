@@ -25,10 +25,7 @@ public class MockHttpServletRequest extends MockServletRequest implements HttpSe
 
     private String servletPath;
 
-    public MockHttpServletRequest() {
-        this.method = "GET";
-        this.session = new MockHttpSession(getServletContext());
-    }
+    public MockHttpServletRequest() {}
 
     public void setServletPath(String servletPath) {
         this.servletPath = servletPath;

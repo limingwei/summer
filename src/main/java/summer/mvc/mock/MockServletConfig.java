@@ -10,8 +10,7 @@ import javax.servlet.ServletContext;
  * @author li (limingwei@mail.com)
  * @version 0.1.1 (2012-09-27)
  */
-class MockServletConfig implements ServletConfig {
-
+public class MockServletConfig implements ServletConfig {
     private ServletContext servletContext;
 
     public MockServletConfig(ServletContext servletContext) {

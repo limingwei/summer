@@ -14,17 +14,7 @@ import javax.servlet.FilterRegistration.Dynamic;
  * @since Java7
  */
 public class MockFilterRegistrationDynamic implements Dynamic {
-    //    private MockServletContext servletContext;
-
-    //    private String filterName;
-
-    //    private String className;
-
-    public MockFilterRegistrationDynamic(MockServletContext servletContext, String filterName, String className) {
-        //        this.servletContext = servletContext;
-        //        this.filterName = filterName;
-        //        this.className = className;
-    }
+    public MockFilterRegistrationDynamic(MockServletContext servletContext, String filterName, String className) {}
 
     public void addMappingForUrlPatterns(EnumSet<DispatcherType> dispatcherTypes, boolean isMatchAfter, String... urlPatterns) {}
 

@@ -6,7 +6,6 @@ import java.util.Locale;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletResponse;
-import javax.servlet.WriteListener;
 
 /**
  * MockServletResponse
@@ -14,9 +13,9 @@ import javax.servlet.WriteListener;
  * @version 0.1.1 (2012-09-27)
  */
 class MockServletResponse implements ServletResponse {
-    private Locale locale = Locale.getDefault();
+    private Locale locale;
 
-    private String characterEncoding = "UTF-8";
+    private String characterEncoding;
 
     private String contentType;
 
@@ -31,17 +30,7 @@ class MockServletResponse implements ServletResponse {
     }
 
     public ServletOutputStream getOutputStream() throws IOException {
-        return new ServletOutputStream() {
-            public void write(int b) throws IOException {
-                getWriter().write(b);
-            }
-
-            public boolean isReady() {
-                return false;
-            }
-
-            public void setWriteListener(WriteListener writeListener) {}
-        };
+        return null;
     }
 
     public String getCharacterEncoding() {
