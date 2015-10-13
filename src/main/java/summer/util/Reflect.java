@@ -87,9 +87,32 @@ public class Reflect {
         try {
             method.setAccessible(true);
             return method.invoke(target, args);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException("IllegalArgument, method=" + method + ", parameterTypes=" + typeToString(method.getParameterTypes()) + ", args=" + argsToString(args) + ", argTypes=" + argTypesToString(args));
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static String argTypesToString(Object[] args) {
+        Class<?>[] types = new Class<?>[args.length];
+        for (int i = 0; i < types.length; i++) {
+            Object arg = args[i];
+            types[i] = null == arg ? null : arg.getClass();
+        }
+        return typeToString(types);
+    }
+
+    private static String argsToString(Object[] args) {
+        return "[" + StringUtil.join(args, ", ") + "]";
+    }
+
+    private static String typeToString(Class<?>[] parameterTypes) {
+        List<String> list = new ArrayList<String>();
+        for (Class<?> type : parameterTypes) {
+            list.add(null == type ? null : type.getName());
+        }
+        return "[" + StringUtil.join(list, ", ") + "]";
     }
 
     public static Field getDeclaredField(Class<?> targetType, String name) {

@@ -190,4 +190,31 @@ public class JavassistSummerCompilerUtil {
         }
         return src;
     }
+
+    private static String _parameters_2(Class<?>[] parameterTypes) {
+        String src = "";
+        for (int i = 0; i < parameterTypes.length; i++) {
+            if (i > 0) {
+                src += ", ";
+            }
+            if (int.class == parameterTypes[i]) {
+                src += Integer.class.getName() + " _param_" + i;
+            } else if (boolean.class == parameterTypes[i]) {
+                src += Boolean.class.getName() + " _param_" + i;
+            } else if (long.class == parameterTypes[i]) {
+                src += Long.class.getName() + " _param_" + i;
+            } else {
+                src += typeToJavaCode_2(parameterTypes[i]) + " _param_" + i;
+            }
+        }
+        return src;
+    }
+
+    public static String typeToJavaCode_2(Class<?> type) {
+        if (type.isArray()) {
+            return type.getComponentType().getName() + "[]";
+        } else {
+            return type.getName();
+        }
+    }
 }
