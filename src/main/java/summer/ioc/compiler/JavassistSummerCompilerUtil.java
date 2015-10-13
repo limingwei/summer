@@ -62,7 +62,6 @@ public class JavassistSummerCompilerUtil {
         String returnTypeName = Reflect.typeToJavaCode(method.getReturnType());
 
         String methodSignature = "public " + returnTypeName + " " + method.getName() + "(" + _parameters(parameterTypes) + ")";
-        MethodPool.putMethod(method.getDeclaringClass().getName() + " " + methodSignature, method);
         String src = methodSignature + "{";
 
         if (0 == parameterTypes.length) {
@@ -74,6 +73,7 @@ public class JavassistSummerCompilerUtil {
         src += "AopFilter[] filters = " + _aop_filters_src(method) + ";";
         src += AopInvoker.class.getName() + " invoker = new " + methodInvokerTypeName(method) + "();";
 
+        MethodPool.putMethod(method.getDeclaringClass().getName() + " " + methodSignature, method);
         src += "Method method = summer.ioc.MethodPool.getMethod(\"" + method.getDeclaringClass().getName() + " " + methodSignature + "\");"; // 不可为空
 
         if ("void".equals(returnTypeName)) {
@@ -187,25 +187,6 @@ public class JavassistSummerCompilerUtil {
                 src += ", ";
             }
             src += Reflect.typeToJavaCode(parameterTypes[i]) + " _param_" + i;
-        }
-        return src;
-    }
-
-    private static String _parameters_2(Class<?>[] parameterTypes) {
-        String src = "";
-        for (int i = 0; i < parameterTypes.length; i++) {
-            if (i > 0) {
-                src += ", ";
-            }
-            if (int.class == parameterTypes[i]) {
-                src += Integer.class.getName() + " _param_" + i;
-            } else if (boolean.class == parameterTypes[i]) {
-                src += Boolean.class.getName() + " _param_" + i;
-            } else if (long.class == parameterTypes[i]) {
-                src += Long.class.getName() + " _param_" + i;
-            } else {
-                src += typeToJavaCode_2(parameterTypes[i]) + " _param_" + i;
-            }
         }
         return src;
     }

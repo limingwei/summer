@@ -9,10 +9,11 @@ import javax.servlet.ServletResponse;
 
 /**
  * MockServletResponse
+ * 
  * @author li (limingwei@mail.com)
  * @version 0.1.1 (2012-09-27)
  */
-class MockServletResponse implements ServletResponse {
+public class MockServletResponse implements ServletResponse {
     private Locale locale;
 
     private String characterEncoding;

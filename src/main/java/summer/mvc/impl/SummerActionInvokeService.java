@@ -23,9 +23,6 @@ public class SummerActionInvokeService implements ActionInvokeService {
         return iocContext;
     }
 
-    /**
-     * TODO 在生成代码里做参数适配
-     */
     public void invokeAction(ActionHandler actionHandler) {
         if (actionHandler instanceof MethodActionHandler) {
             Method actionMethod = ((MethodActionHandler) actionHandler).getMethod();
