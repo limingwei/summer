@@ -15,6 +15,7 @@ import summer.ioc.BeanField;
 import summer.ioc.IocLoader;
 import summer.ioc.annotation.Bean;
 import summer.ioc.annotation.Inject;
+import summer.ioc.loader.util.AnnotationIocLoaderUtil;
 import summer.log.Logger;
 import summer.util.Files;
 import summer.util.Log;
@@ -51,11 +52,11 @@ public class AnnotationIocLoader implements IocLoader {
         List<String> fileList = getClasseFiles();
         for (String classFileName : fileList) {
             try {
-                String className = getClassName(classFileName);
+                String className = AnnotationIocLoaderUtil.getClassName(classFileName);
                 if (!isInPackage(className)) {
                     log.info("{} is not in package", className);
                 } else {
-                    Class<?> type = classForName(className);
+                    Class<?> type = AnnotationIocLoaderUtil.classForName(className);
                     if (null == type) {
                         // 
                     } else {
@@ -73,6 +74,8 @@ public class AnnotationIocLoader implements IocLoader {
                                     BeanField beanField = new BeanField(); // 一个新的Field
                                     beanField.setName(field.getName());
                                     beanField.setValue(injectAnnotation.value());
+                                    String injectType = Reflect.isPrimitiveType(field.getType()) ? BeanField.INJECT_TYPE_VALUE : BeanField.INJECT_TYPE_REFERENCE;
+                                    beanField.setInjectType(injectType);
                                     beanDefinition.getBeanFields().add(beanField);
                                 }
                             }
@@ -91,37 +94,13 @@ public class AnnotationIocLoader implements IocLoader {
         return beanDefinitions;
     }
 
-    private Class<?> classForName(String typeName) {
-        try {
-            return Class.forName(typeName);
-        } catch (ClassNotFoundException e) {
-            return null;
-        }
-    }
-
-    /**
-     * 取/classes/之后的字符串(如果有/classes/的话),替换/为.,去掉.class
-     */
-    private static String getClassName(String classFileName) {
-        int classesIndex = classFileName.indexOf(File.separator + "classes" + File.separator);
-        int testClassesIndex = classFileName.indexOf(File.separator + "test-classes" + File.separator);
-
-        if (classesIndex > 0) {
-            return classFileName.substring(classesIndex + 9, classFileName.length() - 6).replace('/', '.').replace('\\', '.');
-        } else if (testClassesIndex > 0) {
-            return classFileName.substring(testClassesIndex + 14, classFileName.length() - 6).replace('/', '.').replace('\\', '.');
-        } else {
-            return classFileName.substring(0, classFileName.length() - 6).replace('/', '.').replace('\\', '.');
-        }
-    }
-
     /**
      * 获取所有类文件,从class和jar
      */
     private List<String> getClasseFiles() {
         List<String> classFileList = new ArrayList<String>();
         File rootFolder = new File(".");
-        log.info("rootFolder is {}", Files.getCanonicalPath(rootFolder));
+        log.info("root = {}", Files.getCanonicalPath(rootFolder));
         List<String> list = Files.list(rootFolder, CLASS_REGEX, true, 1);
         log.info("class 个数 {}", list.size());
 
@@ -143,7 +122,7 @@ public class AnnotationIocLoader implements IocLoader {
         try {
             List<String> classFileList = new ArrayList<String>();
             for (String pkg : packages) {
-                URL url = getJarPath(pkg);
+                URL url = AnnotationIocLoaderUtil.getJarPath(pkg);
                 if (null != url) {
                     // 得到协议的名称  
                     String protocol = url.getProtocol();
@@ -164,19 +143,6 @@ public class AnnotationIocLoader implements IocLoader {
                 }
             }
             return classFileList;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private URL getJarPath(String pkg) {
-        try {
-            Enumeration<URL> resources = Thread.currentThread().getContextClassLoader().getResources(pkg.replace('.', '/'));
-            while (resources.hasMoreElements()) {
-                URL url = (URL) resources.nextElement();
-                return url;
-            }
-            return null;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }

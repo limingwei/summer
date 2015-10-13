@@ -112,4 +112,11 @@ public class Reflect {
         }
         return fields;
     }
+
+    public static Boolean isPrimitiveType(Class<?> type) {
+        Assert.noNull(type, "type is null");
+        return type.isPrimitive() //
+                || type.equals(String.class) || type.equals(Boolean.class) || type.equals(Character.class) || type.equals(Byte.class) //
+                || Number.class.isAssignableFrom(type);
+    }
 }
