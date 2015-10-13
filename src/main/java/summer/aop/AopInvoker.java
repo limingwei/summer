@@ -1,4 +1,4 @@
-package summer.aop.util;
+package summer.aop;
 
 /**
  * @author li
@@ -6,6 +6,6 @@ package summer.aop.util;
  * @since Java7
  */
 
-public interface MethodInvoker {
+public interface AopInvoker {
     public Object invoke(Object target, Object[] args);
 }
