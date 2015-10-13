@@ -10,8 +10,11 @@ import java.util.Set;
 
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
+import summer.ioc.FactoryBean;
 import summer.log.Logger;
+import summer.util.Assert;
 import summer.util.Log;
+import summer.util.Reflect;
 
 /**
  * @author li
@@ -20,6 +23,40 @@ import summer.util.Log;
  */
 public class SummerIocContextUtil {
     private static final Logger log = Log.slf4j();
+
+    @SuppressWarnings("rawtypes")
+    public static Object unwrapFactoryBean(Object beanInstance) {
+        if (beanInstance instanceof FactoryBean) {
+            return ((FactoryBean) beanInstance).getObject();
+        } else {
+            return beanInstance;
+        }
+    }
+
+    private static boolean isBeanTypeMatch(Class<?> type, BeanDefinition beanDefinition) {
+        Class<?> beanType = beanDefinition.getBeanType();
+        return type.isAssignableFrom(beanType) || //
+                (FactoryBean.class.isAssignableFrom(beanType) && type.isAssignableFrom((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]));
+    }
+
+    public static BeanDefinition findMatchBeanDefinition(List<BeanDefinition> beanDefinitions, String id) {
+        Assert.noEmpty(id, "id 不可以为空");
+        for (BeanDefinition beanDefinition : beanDefinitions) {
+            if (id.equals(beanDefinition.getId())) {
+                return beanDefinition;
+            }
+        }
+        return null;
+    }
+
+    public static BeanDefinition findMatchBeanDefinition(List<BeanDefinition> beanDefinitions, Class<?> type) {
+        for (BeanDefinition beanDefinition : beanDefinitions) {
+            if (isBeanTypeMatch(type, beanDefinition)) {
+                return beanDefinition;
+            }
+        }
+        return null;
+    }
 
     public static List<BeanDefinition> mergeBeanDefinitions(List<BeanDefinition> beanDefinitions) {
         Map<String, List<BeanDefinition>> beanIdToBeanDefinitionMap = listToMap(beanDefinitions);
@@ -77,5 +114,28 @@ public class SummerIocContextUtil {
             }
         }
         return beanIdToBeanDefinitionMap;
+    }
+
+    public static BeanDefinition findMatchBeanDefinition(List<BeanDefinition> beanDefinitions, Class<?> type, String id) {
+        Assert.noEmpty(id, "id 不可以为空");
+
+        for (BeanDefinition beanDefinition : beanDefinitions) {
+            if (isBeanTypeMatch(type, beanDefinition) && id.equals(beanDefinition.getId())) {
+                return beanDefinition;
+            }
+        }
+        return null;
+    }
+
+    public static Boolean containsBean(List<BeanDefinition> beanDefinitions, Class<?> type) {
+        return null != findMatchBeanDefinition(beanDefinitions, type);
+    }
+
+    public static Boolean containsBean(List<BeanDefinition> beanDefinitions, String id) {
+        return null != findMatchBeanDefinition(beanDefinitions, id);
+    }
+
+    public static Boolean containsBean(List<BeanDefinition> beanDefinitions, Class<?> type, String id) {
+        return null != findMatchBeanDefinition(beanDefinitions, type, id);
     }
 }

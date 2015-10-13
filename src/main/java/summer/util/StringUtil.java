@@ -1,5 +1,7 @@
 package summer.util;
 
+import java.util.List;
+
 /**
  * @author li
  * @version 1 (2015年10月11日 下午2:38:12)
@@ -16,5 +18,10 @@ public class StringUtil {
             stringBuilder.append(linker).append(array[i]);
         }
         return stringBuilder.toString();
+    }
+
+    @SuppressWarnings("rawtypes")
+    public static String join(List list, String linker) {
+        return join(list.toArray(), linker);
     }
 }

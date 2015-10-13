@@ -10,7 +10,6 @@ import summer.converter.ConvertService;
 import summer.converter.impl.SummerConvertService;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
-import summer.ioc.FactoryBean;
 import summer.ioc.IocContext;
 import summer.ioc.IocContextAware;
 import summer.ioc.IocLoader;
@@ -28,7 +27,7 @@ import summer.util.Reflect;
  * @version 1 (2015年10月10日 上午10:33:37)
  * @since Java7
  */
-@SuppressWarnings({ "unchecked", "rawtypes" })
+@SuppressWarnings({ "unchecked" })
 public class SummerIocContext extends AbstractSummerIocContext {
     private static final Logger log = Log.slf4j();
 
@@ -67,35 +66,27 @@ public class SummerIocContext extends AbstractSummerIocContext {
     }
 
     public <T> T doGetBean(Class<T> type) {
-        BeanDefinition beanDefinition = findMatchBeanDefinition(type);
+        BeanDefinition beanDefinition = SummerIocContextUtil.findMatchBeanDefinition(beanDefinitions, type);
         Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", beanDefinitions=" + beanDefinitions);
 
-        return (T) unwrapFactoryBean(getBeanInstance(beanDefinition));
+        return (T) SummerIocContextUtil.unwrapFactoryBean(getBeanInstance(beanDefinition));
     }
 
     public Object doGetBean(String id) {
-        BeanDefinition beanDefinition = findMatchBeanDefinition(id);
+        BeanDefinition beanDefinition = SummerIocContextUtil.findMatchBeanDefinition(beanDefinitions, id);
         Assert.noNull(beanDefinition, "not found BeanDefinition for id " + id + ", beanDefinitions=" + beanDefinitions);
 
-        return unwrapFactoryBean(getBeanInstance(beanDefinition));
+        return SummerIocContextUtil.unwrapFactoryBean(getBeanInstance(beanDefinition));
     }
 
     public <T> T doGetBean(Class<T> type, String id) {
         if (IocContext.class.equals(type)) {
             return (T) this;
         } else {
-            BeanDefinition beanDefinition = findMatchBeanDefinition(type, id);
+            BeanDefinition beanDefinition = SummerIocContextUtil.findMatchBeanDefinition(beanDefinitions, type, id);
             Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", id=" + id + ", beanDefinitions=" + beanDefinitions);
 
-            return (T) unwrapFactoryBean(getBeanInstance(beanDefinition));
-        }
-    }
-
-    private Object unwrapFactoryBean(Object beanInstance) {
-        if (beanInstance instanceof FactoryBean) {
-            return ((FactoryBean) beanInstance).getObject();
-        } else {
-            return beanInstance;
+            return (T) SummerIocContextUtil.unwrapFactoryBean(getBeanInstance(beanDefinition));
         }
     }
 
@@ -130,42 +121,6 @@ public class SummerIocContext extends AbstractSummerIocContext {
             instance = beanInstance;
         }
         return instance;
-    }
-
-    private BeanDefinition findMatchBeanDefinition(Class<?> type, String id) {
-        Assert.noEmpty(id, "id 不可以为空");
-
-        for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (isBeanTypeMatch(type, beanDefinition) && id.equals(beanDefinition.getId())) {
-                return beanDefinition;
-            }
-        }
-        return null;
-    }
-
-    private BeanDefinition findMatchBeanDefinition(Class<?> type) {
-        for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (isBeanTypeMatch(type, beanDefinition)) {
-                return beanDefinition;
-            }
-        }
-        return null;
-    }
-
-    private boolean isBeanTypeMatch(Class<?> type, BeanDefinition beanDefinition) {
-        Class<?> beanType = beanDefinition.getBeanType();
-        return type.isAssignableFrom(beanType) || //
-                (FactoryBean.class.isAssignableFrom(beanType) && type.isAssignableFrom((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]));
-    }
-
-    private BeanDefinition findMatchBeanDefinition(String id) {
-        Assert.noEmpty(id, "id 不可以为空");
-        for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (id.equals(beanDefinition.getId())) {
-                return beanDefinition;
-            }
-        }
-        return null;
     }
 
     private Object newReferenceInstance(BeanDefinition beanDefinition, BeanField beanField) {

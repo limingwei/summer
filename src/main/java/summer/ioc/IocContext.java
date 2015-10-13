@@ -8,11 +8,17 @@ import java.util.List;
  * @since Java7
  */
 public interface IocContext {
+    public Object getBean(String id);
+
     public <T> T getBean(Class<T> type);
 
     public <T> T getBean(Class<T> type, String id);
 
-    public Object getBean(String id);
+    public Boolean containsBean(String id);
+
+    public Boolean containsBean(Class<?> type);
+
+    public Boolean containsBean(Class<?> type, String id);
 
     public List<BeanDefinition> getBeanDefinitions();
 }

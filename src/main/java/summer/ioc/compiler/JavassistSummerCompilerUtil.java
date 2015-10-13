@@ -2,19 +2,18 @@ package summer.ioc.compiler;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 
 import summer.aop.Aop;
 import summer.aop.AopInvoker;
 import summer.aop.Transaction;
-import summer.aop.TransactionAopFilter;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.MethodPool;
-import summer.mvc.ParameterAdapter;
-import summer.mvc.ViewProcessor;
 import summer.mvc.annotation.At;
-import summer.mvc.aop.ViewProcessorAopFilter;
 import summer.util.Reflect;
+import summer.util.StringUtil;
 
 /**
  * @author li
@@ -88,32 +87,31 @@ public class JavassistSummerCompilerUtil {
     }
 
     private static String _aop_filters_src(Method method) {
-        String aopFiltersSrc = "";
-        if (null != method.getAnnotation(At.class)) {
-            String parameterAdapterClassName = ParameterAdapter.class.getName();
-            String parameterAdapterAopFilterClassName = summer.mvc.aop.ParameterAdapterAopFilter.class.getName();
-            aopFiltersSrc += "new " + parameterAdapterAopFilterClassName + "((" + parameterAdapterClassName + ")iocContext.getBean(" + parameterAdapterClassName + ".class))";
-        }
-        Aop aop = method.getAnnotation(Aop.class);
-        if (null != aop) {
-            for (String aopBeanName : aop.value()) {
-                aopFiltersSrc += " , iocContext.getBean(\"" + aopBeanName + "\")";
-            }
-        }
-        Transaction transaction = method.getAnnotation(Transaction.class);
-        if (null != transaction) {
-            aopFiltersSrc += " , iocContext.getBean(" + TransactionAopFilter.class.getName() + ".class)";
-        }
-        if (null != method.getAnnotation(At.class)) {
-            String viewProcessorClassName = ViewProcessor.class.getName();
-            String viewProcessorAopFilterClassName = ViewProcessorAopFilter.class.getName();
-            aopFiltersSrc += ", new " + viewProcessorAopFilterClassName + "((" + viewProcessorClassName + ")iocContext.getBean(" + viewProcessorClassName + ".class))";
+        List<String> aopFilters = new ArrayList<String>();
+        if (null != method.getAnnotation(At.class)) { // 类型
+            aopFilters.add("summer.aop.util.AopUtil.getParameterAdapterAopFilter(iocContext)");
         }
 
-        if (aopFiltersSrc.isEmpty()) {
+        Aop aop = method.getAnnotation(Aop.class);
+        if (null != aop) {
+            for (String aopBeanName : aop.value()) { // 名称
+                aopFilters.add("summer.aop.util.AopUtil.getAopFilter(iocContext,\"" + aopBeanName + "\")");
+            }
+        }
+
+        Transaction transaction = method.getAnnotation(Transaction.class);
+        if (null != transaction) { // 名称
+            aopFilters.add("summer.aop.util.AopUtil.getTransactionAopFilter(iocContext)");
+        }
+
+        if (null != method.getAnnotation(At.class)) { // 类型
+            aopFilters.add("summer.aop.util.AopUtil.getViewProcessorAopFilter(iocContext)");
+        }
+
+        if (aopFilters.isEmpty()) {
             return " new AopFilter[0]";
         } else {
-            return "new AopFilter[]{" + aopFiltersSrc + "}";
+            return "new AopFilter[]{" + StringUtil.join(aopFilters, ",") + "}";
         }
     }
 
