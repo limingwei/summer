@@ -167,99 +167,65 @@ public class MockServletContext implements ServletContext {
         return false;
     }
 
-    @Override
     public Dynamic addServlet(String servletName, String className) {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public Dynamic addServlet(String servletName, Servlet servlet) {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public Dynamic addServlet(String servletName, Class<? extends Servlet> servletClass) {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public ServletRegistration getServletRegistration(String servletName) {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public Map<String, ? extends ServletRegistration> getServletRegistrations() {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public javax.servlet.FilterRegistration.Dynamic addFilter(String filterName, String className) {
-        // TODO Auto-generated method stub
-        return null;
+        return new MockFilterRegistrationDynamic(this, filterName, className);
     }
 
-    @Override
     public javax.servlet.FilterRegistration.Dynamic addFilter(String filterName, Filter filter) {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public javax.servlet.FilterRegistration.Dynamic addFilter(String filterName, Class<? extends Filter> filterClass) {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public FilterRegistration getFilterRegistration(String filterName) {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public Map<String, ? extends FilterRegistration> getFilterRegistrations() {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public SessionCookieConfig getSessionCookieConfig() {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
-    public void setSessionTrackingModes(Set<SessionTrackingMode> sessionTrackingModes) {
-        // TODO Auto-generated method stub
+    public void setSessionTrackingModes(Set<SessionTrackingMode> sessionTrackingModes) {}
 
-    }
-
-    @Override
     public Set<SessionTrackingMode> getDefaultSessionTrackingModes() {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public Set<SessionTrackingMode> getEffectiveSessionTrackingModes() {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public JspConfigDescriptor getJspConfigDescriptor() {
-        // TODO Auto-generated method stub
         return null;
     }
 
-    @Override
     public String getVirtualServerName() {
-        // TODO Auto-generated method stub
         return null;
     }
 }

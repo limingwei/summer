@@ -34,17 +34,18 @@ public class SummerMvcContext implements MvcContext {
 
     public SummerMvcContext(IocContext iocContext) {
         this.iocContext = iocContext;
-        init();
+        initSummerMvcContext();
     }
 
     public ActionHandler getActionHandler(HttpServletRequest request) {
         String servletPath = request.getServletPath();
         String method = request.getMethod();
         String key = servletPath + "@" + method;
-        return actionHandlerMapping.get(key);
+        ActionHandler actionHandler = actionHandlerMapping.get(key);
+        return actionHandler;
     }
 
-    private void init() {
+    private void initSummerMvcContext() {
         actionHandlerMapping = new HashMap<String, ActionHandler>();
 
         List<BeanDefinition> beanDefinitions = getIocContext().getBeanDefinitions();

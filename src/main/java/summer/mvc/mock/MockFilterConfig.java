@@ -1,6 +1,8 @@
 package summer.mvc.mock;
 
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.servlet.FilterConfig;
 
@@ -12,6 +14,10 @@ import javax.servlet.FilterConfig;
 public class MockFilterConfig implements FilterConfig {
     private MockServletContext servletContext;
 
+    private Map<String, String> initParameters = new HashMap<String, String>();
+
+    public MockFilterConfig() {}
+
     public MockFilterConfig(MockServletContext servletContext) {
         this.servletContext = servletContext;
     }
@@ -20,15 +26,19 @@ public class MockFilterConfig implements FilterConfig {
         return this.servletContext;
     }
 
+    public String getInitParameter(String key) {
+        return initParameters.get(key);
+    }
+
+    public void setInitParameter(String key, String value) {
+        initParameters.put(key, value);
+    }
+
     public Enumeration<String> getInitParameterNames() {
         return null;
     }
 
     public String getFilterName() {
-        return null;
-    }
-
-    public String getInitParameter(String key) {
         return null;
     }
 }

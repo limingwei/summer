@@ -17,6 +17,7 @@ import summer.ioc.loader.AnnotationIocLoader;
 import summer.ioc.loader.ComplexIocLoader;
 import summer.ioc.loader.XmlIocLoader;
 import summer.log.Logger;
+import summer.util.Assert;
 import summer.util.Log;
 import summer.util.Stream;
 
@@ -35,18 +36,20 @@ public class SummerFilter implements Filter {
     public void init(FilterConfig filterConfig) throws ServletException {
         String summerConfig = filterConfig.getInitParameter(SUMMER_CONFIG_INIT_PARAMETER_NAME);
         if (null == summerConfig || summerConfig.isEmpty()) {
-            summerConfig = "summer.xml";
+            summerConfig = Thread.currentThread().getContextClassLoader().getResource("").getPath() + "summer.xml";
         }
-        String configFilePath = Thread.currentThread().getContextClassLoader().getResource("").getPath() + summerConfig;
-        log.info("init() configFilePath=" + configFilePath);
 
-        XmlIocLoader xmlIocLoader = new XmlIocLoader(Stream.newFileInputStream(configFilePath));
+        log.info("init() summerConfig=" + summerConfig);
+
+        XmlIocLoader xmlIocLoader = new XmlIocLoader(Stream.newFileInputStream(summerConfig));
         AnnotationIocLoader annotationIocLoader = new AnnotationIocLoader(new String[] { "summer.demo" }); // TODO
         ComplexIocLoader iocLoader = new ComplexIocLoader(new IocLoader[] { annotationIocLoader, xmlIocLoader });
         summerDispatcher = new SummerDispatcher(new SummerIocContext(iocLoader));
     }
 
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
+        Assert.noNull(summerDispatcher, "summer.mvc.SummerFilter.summerDispatcher is null");
+
         if (summerDispatcher.doDispatch((HttpServletRequest) request, (HttpServletResponse) response)) {
             //
         } else {

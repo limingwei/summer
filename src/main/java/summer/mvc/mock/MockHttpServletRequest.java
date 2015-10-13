@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.security.Principal;
 import java.util.Collection;
 import java.util.Enumeration;
-import java.util.Map.Entry;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.Cookie;
@@ -24,19 +23,23 @@ public class MockHttpServletRequest extends MockServletRequest implements HttpSe
 
     private MockHttpSession session;
 
+    private String servletPath;
+
     public MockHttpServletRequest() {
         this.method = "GET";
         this.session = new MockHttpSession(getServletContext());
     }
 
+    public void setServletPath(String servletPath) {
+        this.servletPath = servletPath;
+    }
+
+    public String getServletPath() {
+        return this.servletPath;
+    }
+
     public String getQueryString() {
-        String queryString = " ";
-        for (Entry<String, String[]> entry : getParameterMap().entrySet()) {
-            for (String value : entry.getValue()) {
-                queryString += entry.getKey() + "=" + value + "&";
-            }
-        }
-        return queryString.substring(0, queryString.length() - 1).trim();
+        return null;
     }
 
     public void setMethod(String method) {
@@ -104,10 +107,6 @@ public class MockHttpServletRequest extends MockServletRequest implements HttpSe
     }
 
     public String getRequestedSessionId() {
-        return null;
-    }
-
-    public String getServletPath() {
         return null;
     }
 

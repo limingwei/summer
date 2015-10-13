@@ -108,14 +108,14 @@ public class SummerIocContext extends AbstractSummerIocContext {
             Object beanInstance = newBeanInstance(beanType);
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
-                if (BeanField.INJECT_TYPE_VALUE.equals(beanField.getInjectType())) {
-                    Field field = Reflect.getDeclaredField(beanType, beanField.getName());
-                    Object value = convertService.convert(String.class, field.getType(), beanField.getValue());
-                    Reflect.setFieldValue(beanInstance, field, value);
-                } else if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) {
+                if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) {
                     Field field = Reflect.getDeclaredField(beanType, beanField.getName());
                     IocContextAware value = (IocContextAware) newReferenceInstance(beanDefinition, beanField);
                     value.setIocContext(this);
+                    Reflect.setFieldValue(beanInstance, field, value);
+                } else {
+                    Field field = Reflect.getDeclaredField(beanType, beanField.getName());
+                    Object value = convertService.convert(String.class, field.getType(), beanField.getValue());
                     Reflect.setFieldValue(beanInstance, field, value);
                 }
             }
@@ -124,7 +124,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
                 ((IocContextAware) beanInstance).setIocContext(this);
             }
 
-            log.info("init bean " + beanDefinition.getId() + ", " + beanDefinition.getBeanType() + ", beanInstance=" + beanInstance);
+            log.info("inited bean " + beanDefinition.getId() + ", " + beanDefinition.getBeanType() + ", beanInstance=" + beanInstance);
 
             beanInstances.put(beanDefinition, beanInstance);
             instance = beanInstance;

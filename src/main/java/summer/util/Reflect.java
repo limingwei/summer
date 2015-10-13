@@ -61,7 +61,7 @@ public class Reflect {
     public static Class<?> classForName(String typeName) {
         try {
             return Class.forName(typeName);
-        } catch (Throwable e) {
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
     }

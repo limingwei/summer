@@ -93,9 +93,8 @@ public class AnnotationIocLoader implements IocLoader {
 
     private Class<?> classForName(String typeName) {
         try {
-            return Reflect.classForName(typeName);
-        } catch (Exception e) {
-            log.info("" + e);
+            return Class.forName(typeName);
+        } catch (ClassNotFoundException e) {
             return null;
         }
     }
