@@ -36,38 +36,68 @@ public class AnnotationIocLoader implements IocLoader {
         this.packages = packages;
     }
 
+    private boolean isInPackage(String className) {
+        for (String pkg : packages) {
+            if (className.startsWith(pkg)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public List<BeanDefinition> getBeanDefinitions() {
         List<BeanDefinition> beanDefinitions = new ArrayList<BeanDefinition>();
 
         List<String> fileList = getClasseFiles();
         for (String classFileName : fileList) {
             try {
-                Class<?> type = Reflect.classForName(getClassName(classFileName));
-                Bean beanAnnotation = type.getAnnotation(Bean.class);
-                if (beanAnnotation != null) {
-                    BeanDefinition iocBean = new BeanDefinition();// 一个新的Bean
-                    iocBean.setBeanType(type);
-                    iocBean.setId(beanAnnotation.value());
-                    iocBean.setBeanFields(new ArrayList<BeanField>());
+                String className = getClassName(classFileName);
+                if (!isInPackage(className)) {
+                    log.info("{} is not in package", className);
+                } else {
+                    Class<?> type = classForName(className);
+                    if (null == type) {
+                        // 
+                    } else {
+                        Bean beanAnnotation = type.getAnnotation(Bean.class);
+                        if (beanAnnotation != null) {
+                            BeanDefinition beanDefinition = new BeanDefinition(); // 一个新的Bean
+                            beanDefinition.setBeanType(type);
+                            beanDefinition.setId(beanAnnotation.value());
+                            beanDefinition.setBeanFields(new ArrayList<BeanField>());
 
-                    List<Field> fields = Reflect.getDeclaredFields(type);
-                    for (Field field : fields) {
-                        Inject inject = field.getAnnotation(Inject.class);
-                        if (null != inject) {
-                            BeanField attribute = new BeanField();// 一个新的Field
-                            attribute.setName(field.getName());
-                            attribute.setValue(inject.value());
-                            iocBean.getBeanFields().add(attribute);
+                            List<Field> fields = Reflect.getDeclaredFields(type);
+                            for (Field field : fields) {
+                                Inject injectAnnotation = field.getAnnotation(Inject.class);
+                                if (null != injectAnnotation) {
+                                    BeanField beanField = new BeanField(); // 一个新的Field
+                                    beanField.setName(field.getName());
+                                    beanField.setValue(injectAnnotation.value());
+                                    beanDefinition.getBeanFields().add(beanField);
+                                }
+                            }
+                            beanDefinitions.add(beanDefinition);
+
+                            log.debug("add bean: @Bean {} {}", type.getName(), beanDefinition.getId());
                         }
                     }
-                    beanDefinitions.add(iocBean);
-                    log.debug("ADD BEAN: @Bean ? ?", type.getName(), iocBean.getId());
                 }
-            } catch (Throwable e) {} // class not found 啥的，太多了，就先不打日志了
+            } catch (Throwable e) {
+                throw new RuntimeException(e);
+            }
         }
 
         log.info("getBeanDefinitions() returning {}", beanDefinitions.size());
         return beanDefinitions;
+    }
+
+    private Class<?> classForName(String typeName) {
+        try {
+            return Reflect.classForName(typeName);
+        } catch (Exception e) {
+            log.info("" + e);
+            return null;
+        }
     }
 
     /**
@@ -75,7 +105,15 @@ public class AnnotationIocLoader implements IocLoader {
      */
     private static String getClassName(String classFileName) {
         int classesIndex = classFileName.indexOf(File.separator + "classes" + File.separator);
-        return classFileName.substring(classesIndex > 0 ? classesIndex + 9 : 0, classFileName.length() - 6).replace('/', '.').replace('\\', '.');
+        int testClassesIndex = classFileName.indexOf(File.separator + "test-classes" + File.separator);
+
+        if (classesIndex > 0) {
+            return classFileName.substring(classesIndex + 9, classFileName.length() - 6).replace('/', '.').replace('\\', '.');
+        } else if (testClassesIndex > 0) {
+            return classFileName.substring(testClassesIndex + 14, classFileName.length() - 6).replace('/', '.').replace('\\', '.');
+        } else {
+            return classFileName.substring(0, classFileName.length() - 6).replace('/', '.').replace('\\', '.');
+        }
     }
 
     /**
@@ -83,18 +121,19 @@ public class AnnotationIocLoader implements IocLoader {
      */
     private List<String> getClasseFiles() {
         List<String> classFileList = new ArrayList<String>();
-
-        File rootFolder = Files.root(); // test-classes
-        System.err.println("rootFolder=" + rootFolder);
+        File rootFolder = new File(".");
+        log.info("rootFolder is {}", Files.getCanonicalPath(rootFolder));
         List<String> list = Files.list(rootFolder, CLASS_REGEX, true, 1);
+        log.info("class 个数 {}", list.size());
 
         for (String each : list) {
-            System.err.println(each);
+            classFileList.add(each);
         }
 
         List<String> classFilesInJar = getClassFilesInJar();
+        log.info("class in jar 个数 {}", classFilesInJar.size());
         for (String each : classFilesInJar) {
-            System.err.println(each);
+            classFileList.add(each);
         }
 
         classFileList.addAll(classFilesInJar);

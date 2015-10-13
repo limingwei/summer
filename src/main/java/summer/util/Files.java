@@ -1,6 +1,7 @@
 package summer.util;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,5 +47,13 @@ public class Files {
 
     private static boolean regex(String input, String regex) {
         return Pattern.compile(regex).matcher(input).find();
+    }
+
+    public static Object getCanonicalPath(File file) {
+        try {
+            return file.getCanonicalPath();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

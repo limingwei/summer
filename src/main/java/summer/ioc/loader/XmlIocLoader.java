@@ -39,6 +39,8 @@ public class XmlIocLoader implements IocLoader {
             Node node = nodeList.item(i);
             BeanDefinition beanDefinition = parseBean(node);
             beanDefinitions.add(beanDefinition);
+
+            log.debug("add xml bean {} {}", beanDefinition.getBeanType().getName(), beanDefinition.getId());
         }
         log.info("getBeanDefinitions() returning {}", beanDefinitions.size());
         return beanDefinitions;

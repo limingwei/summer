@@ -40,8 +40,6 @@ public class SummerMvcContext implements MvcContext {
     public ActionHandler getActionHandler(HttpServletRequest request) {
         String servletPath = request.getServletPath();
         String method = request.getMethod();
-        log.info("servletPath={}, method={}", servletPath, method);
-
         String key = servletPath + "@" + method;
         return actionHandlerMapping.get(key);
     }

@@ -7,8 +7,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import summer.ioc.IocContext;
+import summer.log.Logger;
 import summer.mvc.impl.SummerActionInvokeService;
 import summer.mvc.impl.SummerMvcContext;
+import summer.util.Log;
 
 /**
  * @author li
@@ -16,6 +18,8 @@ import summer.mvc.impl.SummerMvcContext;
  * @since Java7
  */
 public class SummerDispatcher {
+    private static final Logger log = Log.slf4j();
+
     private IocContext iocContext;
 
     private MvcContext mvcContext;
@@ -53,6 +57,10 @@ public class SummerDispatcher {
             getActionInvokeService().invokeAction(actionHandler);
             return true;
         } else {
+            String servletPath = request.getServletPath();
+            String method = request.getMethod();
+
+            log.info("Action not found, servletPath={}, method={}", servletPath, method);
             return false;
         }
     }
