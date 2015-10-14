@@ -9,12 +9,12 @@ public interface AopType {
     public AopTypeMeta getAopTypeMeta();
 
     /**
-     * 访问指定签名方法 super.invoke
+     * 访问指定签名方法 super.invoke 越过Aop链
      */
     public Object invoke(String methodSignature, Object[] args);
 
     /**
-     * 访问指定签名方法 this.call
+     * 访问指定签名方法 this.call 通过Aop链
      */
     public Object call(String methodSignature, Object[] args);
 }
