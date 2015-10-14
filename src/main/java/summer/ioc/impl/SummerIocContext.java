@@ -19,7 +19,7 @@ import summer.ioc.IocLoader;
 import summer.ioc.SummerCompiler;
 import summer.ioc.compiler.CachedSummerCompiler;
 import summer.ioc.compiler.JavassistSummerCompiler;
-import summer.ioc.compiler.JavassistSummerCompilerUtil;
+import summer.ioc.compiler.util.JavassistSummerCompilerUtil;
 import summer.ioc.impl.util.SummerIocContextUtil;
 import summer.log.Logger;
 import summer.util.Assert;

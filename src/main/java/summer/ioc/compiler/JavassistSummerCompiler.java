@@ -15,6 +15,7 @@ import summer.aop.AopType;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.SummerCompiler;
+import summer.ioc.compiler.util.JavassistSummerCompilerUtil;
 import summer.log.Logger;
 import summer.util.JavassistUtil;
 import summer.util.Log;
