@@ -15,37 +15,41 @@ import summer.util.Reflect;
  */
 public class JavassistSummerCompilerUtil {
     public static String buildAopTypeInvokeMethodSrc(List<Method> methods) {
-        String callDelegateOverrideMethodSrc = "public Object invoke(String methodSignature, Object[] args){";
+        String src = "public Object invoke(String methodSignature, Object[] args){";
+
         for (Method method : methods) {
-            callDelegateOverrideMethodSrc += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
+            src += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
             if ("void".equals(method.getReturnType().getName())) {
-                callDelegateOverrideMethodSrc += "super." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
-                callDelegateOverrideMethodSrc += "return null;";
+                src += "super." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
+                src += "return null;";
             } else {
-                callDelegateOverrideMethodSrc += "return super." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
+                src += "return super." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
             }
-            callDelegateOverrideMethodSrc += "}";
+            src += "}";
         }
-        callDelegateOverrideMethodSrc += "return null;";
-        callDelegateOverrideMethodSrc += "}";
-        return callDelegateOverrideMethodSrc;
+        src += " return null; ";
+        src += "}";
+
+        return src;
     }
 
     public static String buildAopTypeCallMethodSrc(List<Method> methods) {
-        String callDelegateOverrideMethodSrc = "public Object call(String methodSignature, Object[] args){";
+        String src = "public Object call(String methodSignature, Object[] args){";
         for (Method method : methods) {
-            callDelegateOverrideMethodSrc += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
+            src += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
             if ("void".equals(method.getReturnType().getName())) {
-                callDelegateOverrideMethodSrc += "this." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
-                callDelegateOverrideMethodSrc += "return null;";
+                src += "this." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
+                src += "return null;";
             } else {
-                callDelegateOverrideMethodSrc += "return this." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
+                src += "return this." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
             }
-            callDelegateOverrideMethodSrc += "}";
+            src += "}";
         }
-        callDelegateOverrideMethodSrc += "return null;";
-        callDelegateOverrideMethodSrc += "}";
-        return callDelegateOverrideMethodSrc;
+        src += " return null; ";
+        src += "}";
+
+        System.err.println(src);
+        return src;
     }
 
     public static String buildOverrideAopMethodSrc(Method method) {
@@ -61,25 +65,14 @@ public class JavassistSummerCompilerUtil {
             args = "new Object[] { " + arguments(parameterTypes) + " }";
         }
 
-        String methodSignature = getMethodSignature(method);
+        String methodSignature = "\"" + getMethodSignature(method) + "\"";
         if ("void".equals(returnTypeName)) {
-            src += "new AopChain(\"" + methodSignature + "\",this, " + args + ", aopTypeMeta).doFilter();";
+            src += "new AopChain(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter();";
         } else {
-            src += "return (" + method.getReturnType().getName() + ")new AopChain(\"" + methodSignature + "\",this, " + args + ", aopTypeMeta).doFilter().getResult();";
+            src += "return (" + returnTypeName + ")new AopChain(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult();";
         }
         src += "}";
         return src;
-    }
-
-    /**
-     * 获得方法签名
-     */
-    public static String getMethodSignature(Method method) {
-        String genericString = method.toGenericString();
-        String declaringClassName = method.getDeclaringClass().getName();
-        int a = genericString.indexOf(" " + declaringClassName + ".");
-        int b = genericString.lastIndexOf(')');
-        return genericString.substring(a + declaringClassName.length() + 2, b + 1);
     }
 
     public static String buildCallDelegateOverrideAopMethodSrc(Method method, BeanDefinition beanDefinition, BeanField beanField) {
@@ -99,19 +92,33 @@ public class JavassistSummerCompilerUtil {
         return src;
     }
 
-    private static String argumentsCasted(Class<?>[] parameterTypes) {
+    /**
+     * 获得方法签名
+     */
+    public static String getMethodSignature(Method method) {
+        String genericString = method.toGenericString();
+        String declaringClassName = method.getDeclaringClass().getName();
+        int a = genericString.indexOf(" " + declaringClassName + ".");
+        int b = genericString.lastIndexOf(')');
+        return genericString.substring(a + declaringClassName.length() + 2, b + 1);
+    }
+
+    /**
+     * 申明形参列表
+     */
+    private static String parameters(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {
                 src += ", ";
             }
-            src += "(" + Reflect.typeToJavaCode(parameterTypes[i]) + ")args[" + i + "]";
+            src += Reflect.typeToJavaCode(parameterTypes[i]) + " _param_" + i;
         }
         return src;
     }
 
     /**
-     * 引用实参列表
+     * 引用实参列表 参数名为 _param_1
      */
     private static String arguments(Class<?>[] parameterTypes) {
         String src = "";
@@ -125,15 +132,15 @@ public class JavassistSummerCompilerUtil {
     }
 
     /**
-     * 申明形参列表
+     * 引用实参列表 参数为(String)args[]
      */
-    private static String parameters(Class<?>[] parameterTypes) {
+    private static String argumentsCasted(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {
                 src += ", ";
             }
-            src += Reflect.typeToJavaCode(parameterTypes[i]) + " _param_" + i;
+            src += "(" + Reflect.typeToJavaCode(parameterTypes[i]) + ")args[" + i + "]";
         }
         return src;
     }

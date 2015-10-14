@@ -88,16 +88,12 @@ public class AopChain {
         return this;
     }
 
-    public AopChain(String methodSignature, Object target, Object[] args, AopTypeMeta aopTypeMeta) {
-        this(methodSignature, target, aopTypeMeta.getMethod(methodSignature), args, aopTypeMeta.getAopFilters(methodSignature));
-    }
-
-    public AopChain(String methodSignature, Object target, Method method, Object[] args, AopFilter[] filters) {
-        this.methodSignature = methodSignature;
+    public AopChain(Object target, String methodSignature, Object[] args, AopTypeMeta aopTypeMeta) {
         this.target = target;
-        this.method = method;
+        this.methodSignature = methodSignature;
+        this.method = aopTypeMeta.getMethod(methodSignature);
         this.args = args;
-        this._filters = ListUtil.newList(filters);
+        this._filters = ListUtil.newList(aopTypeMeta.getAopFilters(methodSignature));
     }
 
     /**
