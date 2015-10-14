@@ -149,8 +149,24 @@ public class JavassistSummerCompilerUtil {
             if (i > 0) {
                 src += ", ";
             }
-            if (int.class.equals(parameterTypes[i])) {
+
+            Class<?> type = parameterTypes[i];
+            if (int.class.equals(type)) {
                 src += "java.lang.Integer.valueOf(_param_" + i + ")";
+            } else if (byte.class.equals(type)) {
+                src += "java.lang.Byte.valueOf(_param_" + i + ")";
+            } else if (short.class.equals(type)) {
+                src += "java.lang.Short.valueOf(_param_" + i + ")";
+            } else if (long.class.equals(type)) {
+                src += "java.lang.Long.valueOf(_param_" + i + ")";
+            } else if (double.class.equals(type)) {
+                src += "java.lang.Double.valueOf(_param_" + i + ")";
+            } else if (float.class.equals(type)) {
+                src += "java.lang.Float.valueOf(_param_" + i + ")";
+            } else if (char.class.equals(type)) {
+                src += "java.lang.Character.valueOf(_param_" + i + ")";
+            } else if (boolean.class.equals(type)) {
+                src += "java.lang.Boolean.valueOf(_param_" + i + ")";
             } else {
                 src += " _param_" + i;
             }
@@ -167,10 +183,26 @@ public class JavassistSummerCompilerUtil {
             if (i > 0) {
                 src += ", ";
             }
-            if (int.class.equals(parameterTypes[i])) {
+
+            Class<?> type = parameterTypes[i];
+            if (byte.class.equals(type)) {
+                src += "summer.aop.util.AopUtil.valueOf((java.lang.Byte)args[" + i + "])";
+            } else if (short.class.equals(type)) {
+                src += "summer.aop.util.AopUtil.valueOf((java.lang.Short)args[" + i + "])";
+            } else if (int.class.equals(type)) {
                 src += "summer.aop.util.AopUtil.valueOf((java.lang.Integer)args[" + i + "])";
+            } else if (long.class.equals(type)) {
+                src += "summer.aop.util.AopUtil.valueOf((java.lang.Long)args[" + i + "])";
+            } else if (double.class.equals(type)) {
+                src += "summer.aop.util.AopUtil.valueOf((java.lang.Double)args[" + i + "])";
+            } else if (float.class.equals(type)) {
+                src += "summer.aop.util.AopUtil.valueOf((java.lang.Float)args[" + i + "])";
+            } else if (char.class.equals(type)) {
+                src += "summer.aop.util.AopUtil.valueOf((java.lang.Character)args[" + i + "])";
+            } else if (boolean.class.equals(type)) {
+                src += "summer.aop.util.AopUtil.valueOf((java.lang.Boolean)args[" + i + "])";
             } else {
-                src += "(" + Reflect.typeToJavaCode(parameterTypes[i]) + ")args[" + i + "]";
+                src += "(" + Reflect.typeToJavaCode(type) + ")args[" + i + "]";
             }
         }
         return src;

@@ -27,49 +27,35 @@ import summer.util.Assert;
  */
 public class AopUtil {
     public static byte valueOf(Byte value) {
-        return value == null ? 0 : value.byteValue();
+        return null == value ? 0 : value.byteValue();
     }
 
     public static short valueOf(Short value) {
-        if (value == null)
-            return 0;
-        return value.shortValue();
+        return null == value ? 0 : value.shortValue();
     }
 
     public static int valueOf(Integer value) {
-        if (value == null)
-            return 0;
-        return value.intValue();
+        return null == value ? 0 : value.intValue();
     }
 
     public static long valueOf(Long value) {
-        if (value == null)
-            return 0;
-        return value.longValue();
+        return null == value ? 0 : value.longValue();
     }
 
     public static double valueOf(Double value) {
-        if (value == null)
-            return 0;
-        return value.doubleValue();
+        return null == value ? 0 : value.doubleValue();
     }
 
     public static float valueOf(Float value) {
-        if (value == null)
-            return 0;
-        return value.floatValue();
-    }
-
-    public static boolean valueOf(Boolean value) {
-        if (value == null)
-            return false;
-        return value.booleanValue();
+        return null == value ? 0 : value.floatValue();
     }
 
     public static char valueOf(Character value) {
-        if (value == null)
-            return 0;
-        return value.charValue();
+        return null == value ? 0 : value.charValue();
+    }
+
+    public static boolean valueOf(Boolean value) {
+        return null == value ? false : value.booleanValue();
     }
 
     public static AopFilter[] getAopFilters(Method method, IocContext iocContext) {
