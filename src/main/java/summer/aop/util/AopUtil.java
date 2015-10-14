@@ -1,12 +1,19 @@
 package summer.aop.util;
 
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+
 import summer.aop.AopFilter;
+import summer.aop.annotation.Aop;
+import summer.aop.annotation.Transaction;
 import summer.aop.filter.TransactionAopFilter;
 import summer.converter.ConvertService;
 import summer.converter.impl.SummerConvertService;
 import summer.ioc.IocContext;
 import summer.mvc.ParameterAdapter;
 import summer.mvc.ViewProcessor;
+import summer.mvc.annotation.At;
 import summer.mvc.aop.ParameterAdapterAopFilter;
 import summer.mvc.aop.ViewProcessorAopFilter;
 import summer.mvc.impl.SummerParameterAdapter;
@@ -19,6 +26,27 @@ import summer.util.Assert;
  * @since Java7
  */
 public class AopUtil {
+    public static AopFilter[] getAopFilters(Method method, IocContext iocContext) {
+        List<AopFilter> aopFilters = new ArrayList<AopFilter>();
+        if (null != method.getAnnotation(At.class)) { // 类型
+            aopFilters.add(AopUtil.getParameterAdapterAopFilter(iocContext));
+        }
+        Aop aop = method.getAnnotation(Aop.class);
+        if (null != aop) {
+            for (String aopBeanName : aop.value()) { // 名称
+                aopFilters.add(AopUtil.getAopFilter(iocContext, aopBeanName));
+            }
+        }
+        Transaction transaction = method.getAnnotation(Transaction.class);
+        if (null != transaction) { // 名称
+            aopFilters.add(AopUtil.getTransactionAopFilter(iocContext));
+        }
+        if (null != method.getAnnotation(At.class)) { // 类型
+            aopFilters.add(AopUtil.getViewProcessorAopFilter(iocContext));
+        }
+        return aopFilters.toArray(new AopFilter[aopFilters.size()]);
+    }
+
     public static AopFilter getAopFilter(IocContext iocContext, String beanId) {
         AopFilter aopFilter = iocContext.getBean(AopFilter.class, beanId);
         Assert.noNull(aopFilter, "aopFilter[" + beanId + "] Bean not found");

@@ -37,12 +37,12 @@ public class AopChain {
     /**
      * AopFilter列表
      */
-    private List<AopFilter> _filters;
+    private List<AopFilter> filters;
 
     /**
      * AopFilter索引,指示当前执行到filter链中的第几个filter
      */
-    private int _index = 0;
+    private int index = 0;
 
     /**
      * 返回被代理方法宿主对象
@@ -91,19 +91,19 @@ public class AopChain {
     public AopChain(Object target, String methodSignature, Object[] args, AopTypeMeta aopTypeMeta) {
         this.target = target;
         this.methodSignature = methodSignature;
-        this.method = aopTypeMeta.getMethod(methodSignature);
+        this.method = aopTypeMeta.getMethodMap().get(methodSignature);
         this.args = args;
-        this._filters = ListUtil.newList(aopTypeMeta.getAopFilters(methodSignature));
+        this.filters = ListUtil.newList(aopTypeMeta.getAopFilters(methodSignature));
     }
 
     /**
      * 执行AopChain,执行下一个AopFilter或者执行被代理方法
      */
     public AopChain doFilter() {
-        if (null == _filters || _index >= _filters.size()) { // 如果没有AopFilter或者已经经过全部AopFilter
+        if (null == filters || index >= filters.size()) { // 如果没有AopFilter或者已经经过全部AopFilter
             invoke(); // 执行目标方法
         } else { // 还有AopFilter
-            _filters.get(_index++).doFilter(this); // 执行第index个AopFilter然后index++
+            filters.get(index++).doFilter(this); // 执行第index个AopFilter然后index++
         }
         return this;
     }
@@ -121,6 +121,6 @@ public class AopChain {
     }
 
     public String toString() {
-        return super.toString() + ", target=" + getTarget() + ", method=" + getMethod() + ", args=[" + StringUtil.join(getArgs(), ", ") + "], result=" + getResult() + ", filters=" + _filters + ", index=" + _index;
+        return super.toString() + ", target=" + getTarget() + ", method=" + getMethod() + ", args=[" + StringUtil.join(getArgs(), ", ") + "], result=" + getResult() + ", filters=" + filters + ", index=" + index;
     }
 }
