@@ -17,10 +17,19 @@ public class SummerConvertService implements ConvertService {
 
     public SummerConvertService() {
         converters = new ArrayList<Converter>();
+
+        converters.add(new StringToPrimitiveBooleanConverter());
+        converters.add(new StringToPrimitiveByteConverter());
+        converters.add(new StringToPrimitiveCharConverter());
+        converters.add(new StringToPrimitiveDoubleConverter());
+        converters.add(new StringToPrimitiveFloatConverter());
+        converters.add(new StringToPrimitiveIntConverter());
+        converters.add(new StringToPrimitiveLongConverter());
+        converters.add(new StringToPrimitiveShortConverter());
+
         converters.add(new StringToBooleanConverter());
         converters.add(new StringToIntegerConverter());
         converters.add(new StringToLongConverter());
-        converters.add(new StringToPrimitiveIntConverter());
     }
 
     public <From, To> To convert(Class<From> fromType, Class<To> toType, From fromValue) {
