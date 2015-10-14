@@ -13,32 +13,16 @@ import summer.ioc.impl.util.SummerIocContextUtil;
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractSummerIocContext implements IocContext {
-    private Map<Class<?>, Object> cacheByTypeMap = new HashMap<Class<?>, Object>();
-
-    private Map<String, Object> cacheByIdMap = new HashMap<String, Object>();
-
     private Map<String, Object> cacheByTypeAndIdMap = new HashMap<String, Object>();
-
-    private Map<Class<?>, Boolean> containsCacheByTypeMap = new HashMap<Class<?>, Boolean>();
-
-    private Map<String, Boolean> containsCacheByIdMap = new HashMap<String, Boolean>();
 
     private Map<String, Boolean> containsCacheByTypeAndIdMap = new HashMap<String, Boolean>();
 
     public synchronized Boolean containsBean(Class<?> type) {
-        Boolean bool = containsCacheByTypeMap.get(type);
-        if (null == bool) {
-            containsCacheByTypeMap.put(type, bool = SummerIocContextUtil.containsBean(getBeanDefinitions(), type));
-        }
-        return bool;
+        return containsBean(type, BEAN_HAS_NO_ID);
     }
 
     public synchronized Boolean containsBean(String id) {
-        Boolean bool = containsCacheByIdMap.get(id);
-        if (null == bool) {
-            containsCacheByIdMap.put(id, bool = SummerIocContextUtil.containsBean(getBeanDefinitions(), id));
-        }
-        return bool;
+        return containsBean(Object.class, id);
     }
 
     public synchronized Boolean containsBean(Class<?> type, String id) {
@@ -50,19 +34,12 @@ public abstract class AbstractSummerIocContext implements IocContext {
         return bool;
     }
 
+    public Object getBean(String id) {
+        return getBean(Object.class, id);
+    }
+
     public <T> T getBean(Class<T> type) {
-        Object beanInstance = cacheByTypeMap.get(type);
-        if (null == beanInstance) {
-            synchronized (cacheByTypeMap) {
-                beanInstance = cacheByTypeMap.get(type);
-                if (null == beanInstance) {
-                    T instance = doGetBean(type);
-                    cacheByTypeMap.put(type, instance);
-                    beanInstance = instance;
-                }
-            }
-        }
-        return (T) beanInstance;
+        return getBean(type, BEAN_HAS_NO_ID);
     }
 
     public <T> T getBean(Class<T> type, String id) {
@@ -79,29 +56,6 @@ public abstract class AbstractSummerIocContext implements IocContext {
             }
         }
         return (T) beanInstance;
-    }
-
-    public Object getBean(String id) {
-        Object beanInstance = cacheByIdMap.get(id);
-        if (null == beanInstance) {
-            synchronized (cacheByIdMap) {
-                beanInstance = cacheByIdMap.get(id);
-                if (null == beanInstance) {
-                    Object instance = doGetBean(id);
-                    cacheByIdMap.put(id, instance);
-                    beanInstance = instance;
-                }
-            }
-        }
-        return beanInstance;
-    }
-
-    public Object doGetBean(String id) {
-        return doGetBean(Object.class, id);
-    }
-
-    public <T> T doGetBean(Class<T> type) {
-        return doGetBean(type, IocContext.BEAN_HAS_NO_ID);
     }
 
     public abstract <T> T doGetBean(Class<T> type, String id);

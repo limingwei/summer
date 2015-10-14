@@ -109,14 +109,6 @@ public class SummerIocContextUtil {
         return null;
     }
 
-    public static Boolean containsBean(List<BeanDefinition> beanDefinitions, Class<?> type) {
-        return null != findMatchBeanDefinition(beanDefinitions, type, IocContext.BEAN_HAS_NO_ID);
-    }
-
-    public static Boolean containsBean(List<BeanDefinition> beanDefinitions, String id) {
-        return null != findMatchBeanDefinition(beanDefinitions, Object.class, id);
-    }
-
     public static Boolean containsBean(List<BeanDefinition> beanDefinitions, Class<?> type, String id) {
         return null != findMatchBeanDefinition(beanDefinitions, type, id);
     }

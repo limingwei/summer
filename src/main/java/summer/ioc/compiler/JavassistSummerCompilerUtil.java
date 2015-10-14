@@ -37,20 +37,15 @@ public class JavassistSummerCompilerUtil {
         return src;
     }
 
+    /**
+     * 获得方法签名
+     */
     public static String getMethodSignature(Method method) {
-        return method.toGenericString();
-    }
-
-    public static String methodInvokerTypeName(Method method) {
-        String returnTypeName = Reflect.typeToJavaCode(method.getReturnType()).replace("[]", "_Array");
-        Class<?>[] parameterTypes = method.getParameterTypes();
-
-        String methodInvokerTypeName = method.getDeclaringClass().getName() + ".public_" + returnTypeName.replace('.', '_') + "_" + method.getName();
-        for (int i = 0; i < parameterTypes.length; i++) {
-            methodInvokerTypeName += "_" + Reflect.typeToJavaCode(parameterTypes[i]).replace("[]", "_Array").replace('.', '_');
-        }
-        methodInvokerTypeName += "_Invoker";
-        return methodInvokerTypeName;
+        String genericString = method.toGenericString();
+        String declaringClassName = method.getDeclaringClass().getName();
+        int a = genericString.indexOf(" " + declaringClassName + ".");
+        int b = genericString.lastIndexOf(')');
+        return genericString.substring(a + declaringClassName.length() + 2, b + 1);
     }
 
     public static String _invoker_arguments(Class<?>[] parameterTypes) {
@@ -61,14 +56,6 @@ public class JavassistSummerCompilerUtil {
             }
             src += "(" + Reflect.typeToJavaCode(parameterTypes[i]) + ")args[" + i + "]";
         }
-        return src;
-    }
-
-    public static String buildCallSuperMethodSrc(Method method) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        String src = "public " + Reflect.typeToJavaCode(method.getReturnType()) + " super_" + method.getName() + "(" + _parameters(parameterTypes) + "){";
-        src += "return super." + method.getName() + "(" + _arguments(parameterTypes) + ");";
-        src += "}";
         return src;
     }
 
@@ -115,13 +102,5 @@ public class JavassistSummerCompilerUtil {
             src += Reflect.typeToJavaCode(parameterTypes[i]) + " _param_" + i;
         }
         return src;
-    }
-
-    public static String typeToJavaCode_2(Class<?> type) {
-        if (type.isArray()) {
-            return type.getComponentType().getName() + "[]";
-        } else {
-            return type.getName();
-        }
     }
 }

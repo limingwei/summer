@@ -3,7 +3,6 @@ package summer.aop;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import summer.util.Assert;
 import summer.util.ListUtil;
 import summer.util.StringUtil;
 
@@ -105,10 +104,10 @@ public class AopChain {
      * 执行AopChain,执行下一个AopFilter或者执行被代理方法
      */
     public AopChain doFilter() {
-        if (null == _filters || _index >= _filters.size()) {// 如果没有AopFilter或者已经经过全部AopFilter
-            invoke();// 执行目标方法
-        } else {// 还有AopFilter
-            _filters.get(_index++).doFilter(this);// 执行第index个AopFilter然后index++
+        if (null == _filters || _index >= _filters.size()) { // 如果没有AopFilter或者已经经过全部AopFilter
+            invoke(); // 执行目标方法
+        } else { // 还有AopFilter
+            _filters.get(_index++).doFilter(this); // 执行第index个AopFilter然后index++
         }
         return this;
     }
@@ -118,10 +117,7 @@ public class AopChain {
      */
     public AopChain invoke() {
         try {
-            AopType aopTypeTarget = (AopType) getTarget();
-            Assert.noNull(aopTypeTarget, "aopTypeTarget is null");
-
-            setResult(aopTypeTarget.invoke(methodSignature, getArgs()));
+            setResult(((AopType) getTarget()).invoke(methodSignature, getArgs()));
         } catch (Throwable e) {
             throw new RuntimeException(e + " ", e);
         }

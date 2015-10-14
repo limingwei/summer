@@ -9,6 +9,6 @@ import summer.ioc.FactoryBean;
  */
 public class MethodInvokingFactoryBean implements FactoryBean<Object> {
     public Object getObject() {
-        return null;
+        throw new RuntimeException();
     }
 }
