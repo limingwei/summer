@@ -18,12 +18,17 @@ public class JavassistSummerCompilerUtil {
         String src = "public Object invoke(String methodSignature, Object[] args){";
 
         for (Method method : methods) {
-            src += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
-            if ("void".equals(method.getReturnType().getName())) {
-                src += "super." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
+            String methodSignature = JavassistSummerCompilerUtil.getMethodSignature(method);
+            String argumentsCasted = JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes());
+            String methodName = method.getName();
+            String methodReturnTypeName = method.getReturnType().getName();
+
+            src += "if(\"" + methodSignature + "\".equals(methodSignature)){";
+            if ("void".equals(methodReturnTypeName)) {
+                src += "super." + methodName + "(" + argumentsCasted + ");";
                 src += "return null;";
             } else {
-                src += "return super." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
+                src += "return super." + methodName + "(" + argumentsCasted + ");";
             }
             src += "}";
         }
@@ -36,12 +41,17 @@ public class JavassistSummerCompilerUtil {
     public static String buildAopTypeCallMethodSrc(List<Method> methods) {
         String src = "public Object call(String methodSignature, Object[] args){";
         for (Method method : methods) {
-            src += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
-            if ("void".equals(method.getReturnType().getName())) {
-                src += "this." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
+            String methodSignature = JavassistSummerCompilerUtil.getMethodSignature(method);
+            String argumentsCasted = JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes());
+            String methodName = method.getName();
+            String methodReturnTypeName = method.getReturnType().getName();
+
+            src += "if(\"" + methodSignature + "\".equals(methodSignature)){";
+            if ("void".equals(methodReturnTypeName)) {
+                src += "this." + methodName + "(" + argumentsCasted + ");";
                 src += "return null;";
             } else {
-                src += "return this." + method.getName() + "(" + JavassistSummerCompilerUtil.argumentsCasted(method.getParameterTypes()) + ");";
+                src += "return this." + methodName + "(" + argumentsCasted + ");";
             }
             src += "}";
         }
@@ -53,18 +63,14 @@ public class JavassistSummerCompilerUtil {
 
     public static String buildOverrideAopMethodSrc(Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
+
         String returnTypeName = Reflect.typeToJavaCode(method.getReturnType());
+        String methodSignature = "\"" + getMethodSignature(method) + "\"";
 
         String src = "public " + returnTypeName + " " + method.getName() + "(" + parameters(parameterTypes) + ") {";
 
-        String args;
-        if (0 == parameterTypes.length) {
-            args = "new Object[0]";
-        } else {
-            args = "new Object[] { " + arguments(parameterTypes) + " }";
-        }
+        String args = (0 == parameterTypes.length) ? "new Object[0]" : "new Object[] { " + arguments(parameterTypes) + " }";
 
-        String methodSignature = "\"" + getMethodSignature(method) + "\"";
         if ("void".equals(returnTypeName)) {
             src += "new AopChain(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter();";
         } else {
@@ -77,14 +83,17 @@ public class JavassistSummerCompilerUtil {
     public static String buildCallDelegateOverrideAopMethodSrc(Method method, BeanDefinition beanDefinition, BeanField beanField) {
         Field field = Reflect.getDeclaredField(beanDefinition.getBeanType(), beanField.getName());
         Class<?> fieldType = field.getType();
-
         Class<?>[] parameterTypes = method.getParameterTypes();
-        String src = "public " + Reflect.typeToJavaCode(method.getReturnType()) + " " + method.getName() + "(" + parameters(parameterTypes) + "){";
+        String returnTypeName = Reflect.typeToJavaCode(method.getReturnType());
+        String methodName = method.getName();
+        String fieldTypeName = fieldType.getName();
 
-        if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
-            src += "((" + fieldType.getName() + ")getAopTypeMeta().getReferenceTarget())" + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
+        String src = "public " + returnTypeName + " " + methodName + "(" + parameters(parameterTypes) + "){";
+
+        if ("void".equals(returnTypeName)) {
+            src += "((" + fieldTypeName + ")getAopTypeMeta().getReferenceTarget())" + "." + methodName + "(" + arguments(parameterTypes) + ");";
         } else {
-            src += "return " + "((" + fieldType.getName() + ")getAopTypeMeta().getReferenceTarget())" + "." + method.getName() + "(" + arguments(parameterTypes) + ");";
+            src += "return " + "((" + fieldTypeName + ")getAopTypeMeta().getReferenceTarget())" + "." + methodName + "(" + arguments(parameterTypes) + ");";
         }
 
         src += "}";
