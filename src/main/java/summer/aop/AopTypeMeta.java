@@ -1,10 +1,14 @@
 package summer.aop;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+import summer.aop.util.AopUtil;
 import summer.ioc.IocContext;
+import summer.mvc.annotation.At;
 import summer.util.Assert;
 
 /**
@@ -66,5 +70,27 @@ public class AopTypeMeta {
             referenceTarget = ioc.getBean(getReferenceType(), getReferenceName());
         }
         return referenceTarget;
+    }
+
+    public AopFilter[] getAopFilters(String methodSignature) {
+        Method method = getMethod(methodSignature);
+        List<AopFilter> aopFilters = new ArrayList<AopFilter>();
+        if (null != method.getAnnotation(At.class)) { // 类型
+            aopFilters.add(AopUtil.getParameterAdapterAopFilter(getIocContext()));
+        }
+        Aop aop = method.getAnnotation(Aop.class);
+        if (null != aop) {
+            for (String aopBeanName : aop.value()) { // 名称
+                aopFilters.add(AopUtil.getAopFilter(getIocContext(), aopBeanName));
+            }
+        }
+        Transaction transaction = method.getAnnotation(Transaction.class);
+        if (null != transaction) { // 名称
+            aopFilters.add(AopUtil.getTransactionAopFilter(getIocContext()));
+        }
+        if (null != method.getAnnotation(At.class)) { // 类型
+            aopFilters.add(AopUtil.getViewProcessorAopFilter(getIocContext()));
+        }
+        return aopFilters.toArray(new AopFilter[aopFilters.size()]);
     }
 }
