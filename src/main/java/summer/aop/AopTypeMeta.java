@@ -27,8 +27,8 @@ public class AopTypeMeta {
 
     private Map<String, Method> methodMap = new HashMap<String, Method>();
 
-    public Method getMethod(String sign) {
-        return methodMap.get(sign);
+    public Method getMethod(String methodSignature) {
+        return methodMap.get(methodSignature);
     }
 
     public Map<String, Method> getMethodMap() {

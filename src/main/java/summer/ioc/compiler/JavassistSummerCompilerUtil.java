@@ -17,8 +17,7 @@ public class JavassistSummerCompilerUtil {
         Class<?>[] parameterTypes = method.getParameterTypes();
         String returnTypeName = Reflect.typeToJavaCode(method.getReturnType());
 
-        String methodSignature = "public " + returnTypeName + " " + method.getName() + "(" + _parameters(parameterTypes) + ")";
-        String src = methodSignature + "{";
+        String src = "public " + returnTypeName + " " + method.getName() + "(" + _parameters(parameterTypes) + ") {";
 
         String args;
         if (0 == parameterTypes.length) {
@@ -27,11 +26,11 @@ public class JavassistSummerCompilerUtil {
             args = "new Object[] { " + _arguments(parameterTypes) + " }";
         }
 
-        String methodSign = getMethodSignature(method);
+        String methodSignature = getMethodSignature(method);
         if ("void".equals(returnTypeName)) {
-            src += "new AopChain(\"" + methodSign + "\",this, " + args + ", aopTypeMeta).doFilter();";
+            src += "new AopChain(\"" + methodSignature + "\",this, " + args + ", aopTypeMeta).doFilter();";
         } else {
-            src += "return (" + method.getReturnType().getName() + ")new AopChain(\"" + methodSign + "\",this, " + args + ", aopTypeMeta).doFilter().getResult();";
+            src += "return (" + method.getReturnType().getName() + ")new AopChain(\"" + methodSignature + "\",this, " + args + ", aopTypeMeta).doFilter().getResult();";
         }
         src += "}";
         return src;
