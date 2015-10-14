@@ -53,61 +53,14 @@ public class JavassistSummerCompiler implements SummerCompiler {
 
         List<Method> methods = Reflect.getPublicMethods(originalType);
         for (Method method : methods) {
-            addOverrideMethod(ctClass, method);
+            addOverrideAopMethod(ctClass, method);
         }
 
-        addInvokeMethod(ctClass, methods);
-        addCallMethod(ctClass, methods);
+        addAopTypeInvokeMethod(ctClass, methods);
+        addAopTypeCallMethod(ctClass, methods);
 
         log.info("compileClass for" + originalTypeName);
         return JavassistUtil.ctClassToClass(ctClass);
-    }
-
-    private void addCallMethod(CtClass ctClass, List<Method> methods) {
-        String callDelegateOverrideMethodSrc = "public Object call(String methodSignature, Object[] args){";
-        for (Method method : methods) {
-            callDelegateOverrideMethodSrc += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
-            if ("void".equals(method.getReturnType().getName())) {
-                callDelegateOverrideMethodSrc += "this." + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(method.getParameterTypes()) + ");";
-                callDelegateOverrideMethodSrc += "return null;";
-            } else {
-                callDelegateOverrideMethodSrc += "return this." + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(method.getParameterTypes()) + ");";
-            }
-            callDelegateOverrideMethodSrc += "}";
-        }
-        callDelegateOverrideMethodSrc += "return null;";
-        callDelegateOverrideMethodSrc += "}";
-        CtMethod callDelegateOverrideMethod = JavassistUtil.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
-        JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
-    }
-
-    private void addInvokeMethod(CtClass ctClass, List<Method> methods) {
-        String callDelegateOverrideMethodSrc = "public Object invoke(String methodSignature, Object[] args){";
-        for (Method method : methods) {
-            callDelegateOverrideMethodSrc += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
-            if ("void".equals(method.getReturnType().getName())) {
-                callDelegateOverrideMethodSrc += "super." + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(method.getParameterTypes()) + ");";
-                callDelegateOverrideMethodSrc += "return null;";
-            } else {
-                callDelegateOverrideMethodSrc += "return super." + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(method.getParameterTypes()) + ");";
-            }
-            callDelegateOverrideMethodSrc += "}";
-        }
-        callDelegateOverrideMethodSrc += "return null;";
-        callDelegateOverrideMethodSrc += "}";
-        CtMethod callDelegateOverrideMethod = JavassistUtil.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
-        JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
-    }
-
-    private void addAopTypeMetaGetter(CtClass ctClass) {
-        String iocContextFieldSetterSrc = "public summer.aop.AopTypeMeta getAopTypeMeta() { return this.aopTypeMeta; } ";
-        CtMethod iocContextFieldSetter = JavassistUtil.ctNewMethodMake(iocContextFieldSetterSrc, ctClass);
-        JavassistUtil.ctClassAddMethod(ctClass, iocContextFieldSetter);
-    }
-
-    private void addAopTypeMetaField(CtClass ctClass) {
-        CtField ctField = JavassistUtil.ctFieldWithInitMake("private summer.aop.AopTypeMeta aopTypeMeta=new summer.aop.AopTypeMeta(); ", ctClass);
-        JavassistUtil.ctClassAddField(ctClass, ctField);
     }
 
     public Class<?> compileReference(BeanDefinition beanDefinition, BeanField beanField) {
@@ -136,21 +89,46 @@ public class JavassistSummerCompiler implements SummerCompiler {
 
         List<Method> methods = Reflect.getPublicMethods(fieldType);
         for (Method method : methods) {
-            addCallDelegateOverrideMethod(ctClass, method, beanDefinition, beanField);
+            addCallDelegateOverrideAopMethod(ctClass, method, beanDefinition, beanField);
         }
 
         log.info("compileReference beanDefinition.id=" + beanDefinition.getId() + ", " + beanDefinition.getBeanType().getName() + "." + beanField.getName());
         return JavassistUtil.ctClassToClass(ctClass);
     }
 
-    private void addCallDelegateOverrideMethod(CtClass ctClass, Method method, BeanDefinition beanDefinition, BeanField beanField) {
-        String callDelegateOverrideMethodSrc = JavassistSummerCompilerUtil.buildCallDelegateOverrideMethodSrc(method, beanDefinition, beanField);
+    private static void addAopTypeCallMethod(CtClass ctClass, List<Method> methods) {
+        String callDelegateOverrideMethodSrc = JavassistSummerCompilerUtil.buildAopTypeCallMethodSrc(methods);
+
         CtMethod callDelegateOverrideMethod = JavassistUtil.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
     }
 
-    private void addOverrideMethod(CtClass ctClass, Method method) {
-        String overrideMethodSrc = JavassistSummerCompilerUtil.buildOverrideMethodSrc(method);
+    private static void addAopTypeInvokeMethod(CtClass ctClass, List<Method> methods) {
+        String callDelegateOverrideMethodSrc = JavassistSummerCompilerUtil.buildAopTypeInvokeMethodSrc(methods);
+
+        CtMethod callDelegateOverrideMethod = JavassistUtil.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
+        JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
+    }
+
+    private static void addAopTypeMetaGetter(CtClass ctClass) {
+        String iocContextFieldSetterSrc = "public summer.aop.AopTypeMeta getAopTypeMeta() { return this.aopTypeMeta; } ";
+        CtMethod iocContextFieldSetter = JavassistUtil.ctNewMethodMake(iocContextFieldSetterSrc, ctClass);
+        JavassistUtil.ctClassAddMethod(ctClass, iocContextFieldSetter);
+    }
+
+    private static void addAopTypeMetaField(CtClass ctClass) {
+        CtField ctField = JavassistUtil.ctFieldWithInitMake("private summer.aop.AopTypeMeta aopTypeMeta=new summer.aop.AopTypeMeta(); ", ctClass);
+        JavassistUtil.ctClassAddField(ctClass, ctField);
+    }
+
+    private static void addCallDelegateOverrideAopMethod(CtClass ctClass, Method method, BeanDefinition beanDefinition, BeanField beanField) {
+        String callDelegateOverrideMethodSrc = JavassistSummerCompilerUtil.buildCallDelegateOverrideAopMethodSrc(method, beanDefinition, beanField);
+        CtMethod callDelegateOverrideMethod = JavassistUtil.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
+        JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
+    }
+
+    private static void addOverrideAopMethod(CtClass ctClass, Method method) {
+        String overrideMethodSrc = JavassistSummerCompilerUtil.buildOverrideAopMethodSrc(method);
         CtMethod overrideSuperMethod = JavassistUtil.ctNewMethodMake(overrideMethodSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, overrideSuperMethod);
     }
