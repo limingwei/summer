@@ -26,6 +26,52 @@ import summer.util.Assert;
  * @since Java7
  */
 public class AopUtil {
+    public static byte valueOf(Byte value) {
+        return value == null ? 0 : value.byteValue();
+    }
+
+    public static short valueOf(Short value) {
+        if (value == null)
+            return 0;
+        return value.shortValue();
+    }
+
+    public static int valueOf(Integer value) {
+        if (value == null)
+            return 0;
+        return value.intValue();
+    }
+
+    public static long valueOf(Long value) {
+        if (value == null)
+            return 0;
+        return value.longValue();
+    }
+
+    public static double valueOf(Double value) {
+        if (value == null)
+            return 0;
+        return value.doubleValue();
+    }
+
+    public static float valueOf(Float value) {
+        if (value == null)
+            return 0;
+        return value.floatValue();
+    }
+
+    public static boolean valueOf(Boolean value) {
+        if (value == null)
+            return false;
+        return value.booleanValue();
+    }
+
+    public static char valueOf(Character value) {
+        if (value == null)
+            return 0;
+        return value.charValue();
+    }
+
     public static AopFilter[] getAopFilters(Method method, IocContext iocContext) {
         List<AopFilter> aopFilters = new ArrayList<AopFilter>();
         if (null != method.getAnnotation(At.class)) { // 类型

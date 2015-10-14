@@ -20,6 +20,7 @@ public class SummerConvertService implements ConvertService {
         converters.add(new StringToBooleanConverter());
         converters.add(new StringToIntegerConverter());
         converters.add(new StringToLongConverter());
+        converters.add(new StringToPrimitiveIntConverter());
     }
 
     public <From, To> To convert(Class<From> fromType, Class<To> toType, From fromValue) {

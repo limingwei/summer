@@ -35,6 +35,7 @@ public class JavassistSummerCompilerUtil {
         src += " return null; ";
         src += "}";
 
+        System.err.println(src);
         return src;
     }
 
@@ -69,7 +70,7 @@ public class JavassistSummerCompilerUtil {
 
         String src = "public " + returnTypeName + " " + method.getName() + "(" + parameters(parameterTypes) + ") {";
 
-        String args = (0 == parameterTypes.length) ? "new Object[0]" : "new Object[] { " + arguments(parameterTypes) + " }";
+        String args = (0 == parameterTypes.length) ? "new Object[0]" : "new Object[] { " + argumentsPrimitived(parameterTypes) + " }";
 
         if ("void".equals(returnTypeName)) {
             src += "new AopChain(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter();";
@@ -91,9 +92,9 @@ public class JavassistSummerCompilerUtil {
         String src = "public " + returnTypeName + " " + methodName + "(" + parameters(parameterTypes) + "){";
 
         if ("void".equals(returnTypeName)) {
-            src += "((" + fieldTypeName + ")getAopTypeMeta().getReferenceTarget())" + "." + methodName + "(" + arguments(parameterTypes) + ");";
+            src += "((" + fieldTypeName + ")getAopTypeMeta().getReferenceTarget())" + "." + methodName + "(" + argumentsOriginal(parameterTypes) + ");";
         } else {
-            src += "return " + "((" + fieldTypeName + ")getAopTypeMeta().getReferenceTarget())" + "." + methodName + "(" + arguments(parameterTypes) + ");";
+            src += "return " + "((" + fieldTypeName + ")getAopTypeMeta().getReferenceTarget())" + "." + methodName + "(" + argumentsOriginal(parameterTypes) + ");";
         }
 
         src += "}";
@@ -126,15 +127,33 @@ public class JavassistSummerCompilerUtil {
     }
 
     /**
-     * 引用实参列表 参数名为 _param_1
+     * 原本的实参列表
      */
-    private static String arguments(Class<?>[] parameterTypes) {
+    private static String argumentsOriginal(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {
                 src += ", ";
             }
             src += " _param_" + i;
+        }
+        return src;
+    }
+
+    /**
+     * 引用实参列表 参数名为 _param_1
+     */
+    private static String argumentsPrimitived(Class<?>[] parameterTypes) {
+        String src = "";
+        for (int i = 0; i < parameterTypes.length; i++) {
+            if (i > 0) {
+                src += ", ";
+            }
+            if (int.class.equals(parameterTypes[i])) {
+                src += "java.lang.Integer.valueOf(_param_" + i + ")";
+            } else {
+                src += " _param_" + i;
+            }
         }
         return src;
     }
@@ -148,7 +167,11 @@ public class JavassistSummerCompilerUtil {
             if (i > 0) {
                 src += ", ";
             }
-            src += "(" + Reflect.typeToJavaCode(parameterTypes[i]) + ")args[" + i + "]";
+            if (int.class.equals(parameterTypes[i])) {
+                src += "summer.aop.util.AopUtil.valueOf((java.lang.Integer)args[" + i + "])";
+            } else {
+                src += "(" + Reflect.typeToJavaCode(parameterTypes[i]) + ")args[" + i + "]";
+            }
         }
         return src;
     }
