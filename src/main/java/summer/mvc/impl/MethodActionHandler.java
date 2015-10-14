@@ -2,6 +2,7 @@ package summer.mvc.impl;
 
 import java.lang.reflect.Method;
 
+import summer.ioc.BeanDefinition;
 import summer.mvc.ActionHandler;
 
 /**
@@ -10,10 +11,16 @@ import summer.mvc.ActionHandler;
  * @since Java7
  */
 public class MethodActionHandler implements ActionHandler {
+    private BeanDefinition beanDefinition;
+
     private Method method;
 
-    public MethodActionHandler(Method method) {
-        this.method = method;
+    public void setBeanDefinition(BeanDefinition beanDefinition) {
+        this.beanDefinition = beanDefinition;
+    }
+
+    public BeanDefinition getBeanDefinition() {
+        return beanDefinition;
     }
 
     public Method getMethod() {

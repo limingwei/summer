@@ -48,7 +48,6 @@ public class JavassistSummerCompilerUtil {
         src += " return null; ";
         src += "}";
 
-        System.err.println(src);
         return src;
     }
 

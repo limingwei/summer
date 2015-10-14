@@ -19,6 +19,8 @@ public class AopTypeMeta implements Serializable {
 
     private Map<String, Method> methodMap = new HashMap<String, Method>();
 
+    private Map<String, AopFilter[]> methodAopFiltersMap = new HashMap<String, AopFilter[]>();
+
     private IocContext iocContext;
 
     private Object referenceTarget;
@@ -53,6 +55,10 @@ public class AopTypeMeta implements Serializable {
     }
 
     public AopFilter[] getAopFilters(String methodSignature) {
-        return AopUtil.getAopFilters(getMethodMap().get(methodSignature), iocContext);
+        AopFilter[] aopFilters = methodAopFiltersMap.get(methodSignature);
+        if (null == aopFilters) {
+            methodAopFiltersMap.put(methodSignature, aopFilters = AopUtil.getAopFilters(getMethodMap().get(methodSignature), iocContext));
+        }
+        return aopFilters;
     }
 }

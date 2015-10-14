@@ -61,7 +61,12 @@ public class SummerMvcContext implements MvcContext {
                     for (String atAnnotationValue : atAnnotationValues) {
                         for (String atAnnotationMethod : atAnnotationMethods) {
                             String key = atAnnotationValue + "@" + atAnnotationMethod;
-                            actionHandlerMapping.put(key, new MethodActionHandler(method));
+
+                            MethodActionHandler actionHandler = new MethodActionHandler();
+                            actionHandler.setBeanDefinition(beanDefinition);
+                            actionHandler.setMethod(method);
+
+                            actionHandlerMapping.put(key, actionHandler);
 
                             log.info("添加 @At(value=\"" + atAnnotationValue + "\", method=\"" + atAnnotationMethod + "\"), method={}", atAnnotation, method);
                         }

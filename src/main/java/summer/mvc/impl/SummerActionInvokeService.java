@@ -1,15 +1,12 @@
 package summer.mvc.impl;
 
-import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.Map;
 
-import summer.aop.AopType;
 import summer.ioc.IocContext;
-import summer.ioc.compiler.util.JavassistSummerCompilerUtil;
-import summer.log.Logger;
 import summer.mvc.ActionHandler;
 import summer.mvc.ActionInvokeService;
-import summer.util.Log;
-import summer.util.Reflect;
+import summer.mvc.ActionInvoker;
 
 /**
  * @author li
@@ -17,7 +14,7 @@ import summer.util.Reflect;
  * @since Java7
  */
 public class SummerActionInvokeService implements ActionInvokeService {
-    private static final Logger log = Log.slf4j();
+    private Map<ActionHandler, ActionInvoker> actionInvokerMap = new HashMap<ActionHandler, ActionInvoker>();
 
     private IocContext iocContext;
 
@@ -25,27 +22,11 @@ public class SummerActionInvokeService implements ActionInvokeService {
         this.iocContext = iocContext;
     }
 
-    public IocContext getIocContext() {
-        return iocContext;
-    }
-
     public void invokeAction(ActionHandler actionHandler) {
-        if (actionHandler instanceof MethodActionHandler) {
-            Method actionMethod = ((MethodActionHandler) actionHandler).getMethod();
-            Object actionBean = getIocContext().getBean(actionMethod.getDeclaringClass());
-            Class<?>[] parameterTypes = actionMethod.getParameterTypes();
-            Object[] args = new Object[parameterTypes.length];
-
-            if (actionBean instanceof AopType) {
-                String methodSignature = JavassistSummerCompilerUtil.getMethodSignature(((MethodActionHandler) actionHandler).getMethod());
-                ((AopType) actionBean).call(methodSignature, args);
-                log.info("AopType invokeMethod, actionBean={}, actionMethod={}", actionBean, actionMethod);
-            } else {
-                Reflect.invokeMethod(actionBean, actionMethod, args); // TODO 改成生成代码执行
-                log.info("Reflect invokeMethod, actionBean={}, actionMethod={}", actionBean, actionMethod);
-            }
-        } else {
-            throw new RuntimeException("invokeAction error");
+        ActionInvoker actionInvoker = actionInvokerMap.get(actionHandler);
+        if (null == actionInvoker) {
+            actionInvokerMap.put(actionHandler, actionInvoker = new MethodActionInvoker(iocContext, actionHandler));
         }
+        actionInvoker.invokeAction();
     }
 }
