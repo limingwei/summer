@@ -56,9 +56,28 @@ public class JavassistSummerCompiler implements SummerCompiler {
         }
 
         addInvokeMethod(ctClass, methods);
+        addCallMethod(ctClass, methods);
 
         log.info("compileClass for" + originalTypeName);
         return JavassistUtil.ctClassToClass(ctClass);
+    }
+
+    private void addCallMethod(CtClass ctClass, List<Method> methods) {
+        String callDelegateOverrideMethodSrc = "public Object call(String methodSignature, Object[] args){";
+        for (Method method : methods) {
+            callDelegateOverrideMethodSrc += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
+            if ("void".equals(method.getReturnType().getName())) {
+                callDelegateOverrideMethodSrc += "this." + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(method.getParameterTypes()) + ");";
+                callDelegateOverrideMethodSrc += "return null;";
+            } else {
+                callDelegateOverrideMethodSrc += "return this." + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(method.getParameterTypes()) + ");";
+            }
+            callDelegateOverrideMethodSrc += "}";
+        }
+        callDelegateOverrideMethodSrc += "return null;";
+        callDelegateOverrideMethodSrc += "}";
+        CtMethod callDelegateOverrideMethod = JavassistUtil.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
+        JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
     }
 
     private void addInvokeMethod(CtClass ctClass, List<Method> methods) {
