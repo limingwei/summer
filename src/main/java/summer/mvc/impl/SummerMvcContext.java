@@ -46,6 +46,8 @@ public class SummerMvcContext implements MvcContext {
     }
 
     private void initSummerMvcContext() {
+        log.info("initSummerMvcContext()");
+
         actionHandlerMapping = new HashMap<String, ActionHandler>();
 
         List<BeanDefinition> beanDefinitions = getIocContext().getBeanDefinitions();

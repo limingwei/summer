@@ -1,5 +1,8 @@
 package summer.mvc.aop;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
 import summer.aop.AopChain;
 import summer.aop.AopFilter;
 import summer.log.Logger;
@@ -26,8 +29,10 @@ public class ViewProcessorAopFilter implements AopFilter {
         if (null != chain.getMethod().getAnnotation(At.class)) {
             Object result = chain.doFilter().getResult();
 
+            HttpServletRequest request = Mvc.getRequest();
+            HttpServletResponse response = Mvc.getResponse();
+            viewProcessor.process(request, response, result);
             log.info("ViewProcessor 处理视图, result=" + result + ", method=" + chain.getMethod() + ", chain=" + chain);
-            viewProcessor.process(Mvc.getRequest(), Mvc.getResponse(), result);
         } else {
             chain.doFilter();
         }
