@@ -11,10 +11,9 @@ import javassist.CtMethod;
 import javassist.LoaderClassPath;
 import summer.aop.AopChain;
 import summer.aop.AopFilter;
-import summer.aop.AopInvoker;
+import summer.aop.AopType;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
-import summer.ioc.IocContextAware;
 import summer.ioc.SummerCompiler;
 import summer.log.Logger;
 import summer.util.JavassistUtil;
@@ -38,7 +37,6 @@ public class JavassistSummerCompiler implements SummerCompiler {
 
         classPool.importPackage(Method.class.getName());
         classPool.importPackage(AopFilter.class.getName());
-        classPool.importPackage(AopInvoker.class.getName());
         classPool.importPackage(AopChain.class.getName());
 
         String subClassName = originalTypeName + "_JavassistSummerCompiler_Aop";
@@ -46,24 +44,50 @@ public class JavassistSummerCompiler implements SummerCompiler {
         CtClass superCtClass = JavassistUtil.getCtClass(classPool, originalTypeName);
         JavassistUtil.ctClassSetSuperclass(ctClass, superCtClass);
 
-        // IocContextAware
-        CtClass iocContextAwareCtClass = JavassistUtil.getCtClass(classPool, IocContextAware.class.getName());
+        CtClass iocContextAwareCtClass = JavassistUtil.getCtClass(classPool, AopType.class.getName());
         ctClass.addInterface(iocContextAwareCtClass);
 
-        addIocContextField(ctClass);
-        addIocContextFieldSetter(ctClass);
+        addAopTypeMetaField(ctClass);
+        addAopTypeMetaGetter(ctClass);
 
         List<Method> methods = Reflect.getPublicMethods(originalType);
         for (Method method : methods) {
-            addCallSuperMethod(ctClass, method);
-
-            addInvokerClass(classPool, subClassName, method);
-
             addOverrideMethod(ctClass, method);
         }
 
+        addInvokeMethod(ctClass, methods);
+
         log.info("compileClass for" + originalTypeName);
         return JavassistUtil.ctClassToClass(ctClass);
+    }
+
+    private void addInvokeMethod(CtClass ctClass, List<Method> methods) {
+        String callDelegateOverrideMethodSrc = "public Object invoke(String methodSignature, Object[] args){";
+        for (Method method : methods) {
+            callDelegateOverrideMethodSrc += "if(\"" + JavassistSummerCompilerUtil.getMethodSignature(method) + "\".equals(methodSignature)){";
+            if ("void".equals(method.getReturnType().getName())) {
+                callDelegateOverrideMethodSrc += "super." + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(method.getParameterTypes()) + ");";
+                callDelegateOverrideMethodSrc += "return null;";
+            } else {
+                callDelegateOverrideMethodSrc += "return super." + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(method.getParameterTypes()) + ");";
+            }
+            callDelegateOverrideMethodSrc += "}";
+        }
+        callDelegateOverrideMethodSrc += "return null;";
+        callDelegateOverrideMethodSrc += "}";
+        CtMethod callDelegateOverrideMethod = JavassistUtil.ctNewMethodMake(callDelegateOverrideMethodSrc, ctClass);
+        JavassistUtil.ctClassAddMethod(ctClass, callDelegateOverrideMethod);
+    }
+
+    private void addAopTypeMetaGetter(CtClass ctClass) {
+        String iocContextFieldSetterSrc = "public summer.aop.AopTypeMeta getAopTypeMeta() { return this.aopTypeMeta; } ";
+        CtMethod iocContextFieldSetter = JavassistUtil.ctNewMethodMake(iocContextFieldSetterSrc, ctClass);
+        JavassistUtil.ctClassAddMethod(ctClass, iocContextFieldSetter);
+    }
+
+    private void addAopTypeMetaField(CtClass ctClass) {
+        CtField ctField = JavassistUtil.ctFieldWithInitMake("private summer.aop.AopTypeMeta aopTypeMeta=new summer.aop.AopTypeMeta(); ", ctClass);
+        JavassistUtil.ctClassAddField(ctClass, ctField);
     }
 
     public Class<?> compileReference(BeanDefinition beanDefinition, BeanField beanField) {
@@ -84,15 +108,11 @@ public class JavassistSummerCompiler implements SummerCompiler {
             JavassistUtil.ctClassSetSuperclass(ctClass, fieldTypeCtClass);
         }
 
-        // IocContextAware
-        CtClass iocContextAwareCtClass = JavassistUtil.getCtClass(classPool, IocContextAware.class.getName());
+        CtClass iocContextAwareCtClass = JavassistUtil.getCtClass(classPool, AopType.class.getName());
         ctClass.addInterface(iocContextAwareCtClass);
 
-        addIocContextField(ctClass);
-        addIocContextFieldSetter(ctClass);
-
-        addReferenceTargetField(ctClass);
-        addReferenceTargetFieldGetter(ctClass, beanDefinition, beanField);
+        addAopTypeMetaField(ctClass);
+        addAopTypeMetaGetter(ctClass);
 
         List<Method> methods = Reflect.getPublicMethods(fieldType);
         for (Method method : methods) {
@@ -101,29 +121,6 @@ public class JavassistSummerCompiler implements SummerCompiler {
 
         log.info("compileReference beanDefinition.id=" + beanDefinition.getId() + ", " + beanDefinition.getBeanType().getName() + "." + beanField.getName());
         return JavassistUtil.ctClassToClass(ctClass);
-    }
-
-    private void addReferenceTargetField(CtClass ctClass) {
-        CtField ctField = JavassistUtil.ctFieldWithInitMake("private java.lang.Object referenceTarget; ", ctClass);
-        JavassistUtil.ctClassAddField(ctClass, ctField);
-    }
-
-    private void addReferenceTargetFieldGetter(CtClass ctClass, BeanDefinition beanDefinition, BeanField beanField) {
-        String referenceTargetFieldGetterSrc = JavassistSummerCompilerUtil.buildReferenceTargetFieldGetterSrc(beanDefinition, beanField);
-
-        CtMethod iocContextFieldSetter = JavassistUtil.ctNewMethodMake(referenceTargetFieldGetterSrc, ctClass);
-        JavassistUtil.ctClassAddMethod(ctClass, iocContextFieldSetter);
-    }
-
-    private void addIocContextField(CtClass ctClass) {
-        CtField ctField = JavassistUtil.ctFieldWithInitMake("private summer.ioc.IocContext iocContext; ", ctClass);
-        JavassistUtil.ctClassAddField(ctClass, ctField);
-    }
-
-    private void addIocContextFieldSetter(CtClass ctClass) {
-        String iocContextFieldSetterSrc = "public void setIocContext(summer.ioc.IocContext iocContext) { this.iocContext=iocContext; } ";
-        CtMethod iocContextFieldSetter = JavassistUtil.ctNewMethodMake(iocContextFieldSetterSrc, ctClass);
-        JavassistUtil.ctClassAddMethod(ctClass, iocContextFieldSetter);
     }
 
     private void addCallDelegateOverrideMethod(CtClass ctClass, Method method, BeanDefinition beanDefinition, BeanField beanField) {
@@ -136,25 +133,5 @@ public class JavassistSummerCompiler implements SummerCompiler {
         String overrideMethodSrc = JavassistSummerCompilerUtil.buildOverrideMethodSrc(method);
         CtMethod overrideSuperMethod = JavassistUtil.ctNewMethodMake(overrideMethodSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, overrideSuperMethod);
-    }
-
-    private void addInvokerClass(ClassPool classPool, String subClassName, Method method) {
-        String methodInvokerTypeName = JavassistSummerCompilerUtil.methodInvokerTypeName(method);
-        CtClass invokerCtClass = classPool.makeClass(methodInvokerTypeName);
-        CtClass aopInvokerCtClass = JavassistUtil.getCtClass(classPool, AopInvoker.class.getName());
-        invokerCtClass.addInterface(aopInvokerCtClass);
-
-        String invokerCtMethodSrc = JavassistSummerCompilerUtil.buildInvokerClassSrc(subClassName, method);
-
-        CtMethod invokerCtMethod = JavassistUtil.ctNewMethodMake(invokerCtMethodSrc, invokerCtClass);
-        JavassistUtil.ctClassAddMethod(invokerCtClass, invokerCtMethod);
-
-        JavassistUtil.ctClassToClass(invokerCtClass);
-    }
-
-    private void addCallSuperMethod(CtClass ctClass, Method method) {
-        String callSuperMethodSrc = JavassistSummerCompilerUtil.buildCallSuperMethodSrc(method);
-        CtMethod callSuperMethod = JavassistUtil.ctNewMethodMake(callSuperMethodSrc, ctClass);
-        JavassistUtil.ctClassAddMethod(ctClass, callSuperMethod);
     }
 }

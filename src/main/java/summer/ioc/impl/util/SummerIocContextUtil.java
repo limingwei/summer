@@ -11,6 +11,7 @@ import java.util.Set;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.FactoryBean;
+import summer.ioc.IocContext;
 import summer.log.Logger;
 import summer.util.Assert;
 import summer.util.Log;
@@ -37,25 +38,6 @@ public class SummerIocContextUtil {
         Class<?> beanType = beanDefinition.getBeanType();
         return type.isAssignableFrom(beanType) || //
                 (FactoryBean.class.isAssignableFrom(beanType) && type.isAssignableFrom((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]));
-    }
-
-    public static BeanDefinition findMatchBeanDefinition(List<BeanDefinition> beanDefinitions, String id) {
-        Assert.noEmpty(id, "id 不可以为空");
-        for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (id.equals(beanDefinition.getId())) {
-                return beanDefinition;
-            }
-        }
-        return null;
-    }
-
-    public static BeanDefinition findMatchBeanDefinition(List<BeanDefinition> beanDefinitions, Class<?> type) {
-        for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (isBeanTypeMatch(type, beanDefinition)) {
-                return beanDefinition;
-            }
-        }
-        return null;
     }
 
     public static List<BeanDefinition> mergeBeanDefinitions(List<BeanDefinition> beanDefinitions) {
@@ -120,7 +102,7 @@ public class SummerIocContextUtil {
         Assert.noEmpty(id, "id 不可以为空");
 
         for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (isBeanTypeMatch(type, beanDefinition) && id.equals(beanDefinition.getId())) {
+            if (isBeanTypeMatch(type, beanDefinition) && (id.equals(beanDefinition.getId()) || IocContext.BEAN_HAS_NO_ID.equals(id))) {
                 return beanDefinition;
             }
         }
@@ -128,11 +110,11 @@ public class SummerIocContextUtil {
     }
 
     public static Boolean containsBean(List<BeanDefinition> beanDefinitions, Class<?> type) {
-        return null != findMatchBeanDefinition(beanDefinitions, type);
+        return null != findMatchBeanDefinition(beanDefinitions, type, IocContext.BEAN_HAS_NO_ID);
     }
 
     public static Boolean containsBean(List<BeanDefinition> beanDefinitions, String id) {
-        return null != findMatchBeanDefinition(beanDefinitions, id);
+        return null != findMatchBeanDefinition(beanDefinitions, Object.class, id);
     }
 
     public static Boolean containsBean(List<BeanDefinition> beanDefinitions, Class<?> type, String id) {

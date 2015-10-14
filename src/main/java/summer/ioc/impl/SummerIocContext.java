@@ -1,11 +1,14 @@
 package summer.ioc.impl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import summer.aop.AopType;
+import summer.aop.AopTypeMeta;
 import summer.converter.ConvertService;
 import summer.converter.impl.SummerConvertService;
 import summer.ioc.BeanDefinition;
@@ -16,6 +19,7 @@ import summer.ioc.IocLoader;
 import summer.ioc.SummerCompiler;
 import summer.ioc.compiler.CachedSummerCompiler;
 import summer.ioc.compiler.JavassistSummerCompiler;
+import summer.ioc.compiler.JavassistSummerCompilerUtil;
 import summer.ioc.impl.util.SummerIocContextUtil;
 import summer.log.Logger;
 import summer.util.Assert;
@@ -65,20 +69,6 @@ public class SummerIocContext extends AbstractSummerIocContext {
         return beanDefinitions;
     }
 
-    public <T> T doGetBean(Class<T> type) {
-        BeanDefinition beanDefinition = SummerIocContextUtil.findMatchBeanDefinition(beanDefinitions, type);
-        Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", beanDefinitions=" + beanDefinitions);
-
-        return (T) SummerIocContextUtil.unwrapFactoryBean(getBeanInstance(beanDefinition));
-    }
-
-    public Object doGetBean(String id) {
-        BeanDefinition beanDefinition = SummerIocContextUtil.findMatchBeanDefinition(beanDefinitions, id);
-        Assert.noNull(beanDefinition, "not found BeanDefinition for id " + id + ", beanDefinitions=" + beanDefinitions);
-
-        return SummerIocContextUtil.unwrapFactoryBean(getBeanInstance(beanDefinition));
-    }
-
     public <T> T doGetBean(Class<T> type, String id) {
         if (IocContext.class.equals(type)) {
             return (T) this;
@@ -101,8 +91,15 @@ public class SummerIocContext extends AbstractSummerIocContext {
             for (BeanField beanField : beanDefinition.getBeanFields()) {
                 if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) {
                     Field field = Reflect.getDeclaredField(beanType, beanField.getName());
-                    IocContextAware value = (IocContextAware) newReferenceInstance(beanDefinition, beanField);
-                    value.setIocContext(this);
+                    Object value = newReferenceInstance(beanDefinition, beanField);
+
+                    if (value instanceof AopType) {
+                        AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
+                        aopTypeMeta.setIocContext(this);
+                        aopTypeMeta.setReferenceName(BEAN_HAS_NO_ID);
+                        aopTypeMeta.setReferenceType(field.getType());
+                    }
+
                     Reflect.setFieldValue(beanInstance, field, value);
                 } else {
                     Field field = Reflect.getDeclaredField(beanType, beanField.getName());
@@ -113,6 +110,17 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
             if (beanInstance instanceof IocContextAware) {
                 ((IocContextAware) beanInstance).setIocContext(this);
+            }
+
+            if (beanInstance instanceof AopType) {
+                AopTypeMeta aopTypeMeta = ((AopType) beanInstance).getAopTypeMeta();
+                aopTypeMeta.setIocContext(this);
+                Map<String, Method> map = aopTypeMeta.getMethodMap();
+
+                List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
+                for (Method method : methods) {
+                    map.put(JavassistSummerCompilerUtil.getMethodSignature(method), method);
+                }
             }
 
             log.info("inited bean " + beanDefinition.getId() + ", " + beanDefinition.getBeanType() + ", beanInstance=" + beanInstance);

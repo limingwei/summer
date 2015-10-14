@@ -6,11 +6,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import summer.aop.Aop;
-import summer.aop.AopInvoker;
 import summer.aop.Transaction;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
-import summer.ioc.MethodPool;
 import summer.mvc.annotation.At;
 import summer.util.Reflect;
 import summer.util.StringUtil;
@@ -21,41 +19,41 @@ import summer.util.StringUtil;
  * @since Java7
  */
 public class JavassistSummerCompilerUtil {
-    public static String buildInvokerClassSrc(String subClassName, Method method) {
-        Class<?>[] parameterTypes = method.getParameterTypes();
+    //    public static String buildInvokerClassSrc(String subClassName, Method method) {
+    //        Class<?>[] parameterTypes = method.getParameterTypes();
+    //
+    //        String invokerCtMethodSrc = "public Object invoke(Object target, Object[] args) { ";//
+    //        String invokeSuperStatement = "((" + subClassName + ")target).super_" + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(parameterTypes) + ");";
+    //
+    //        if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
+    //            invokerCtMethodSrc += invokeSuperStatement;
+    //            invokerCtMethodSrc += "return null;";
+    //        } else {
+    //            invokerCtMethodSrc += " return " + invokeSuperStatement;
+    //        }
+    //
+    //        invokerCtMethodSrc += " } ";
+    //        return invokerCtMethodSrc;
+    //    }
 
-        String invokerCtMethodSrc = "public Object invoke(Object target, Object[] args) { ";//
-        String invokeSuperStatement = "((" + subClassName + ")target).super_" + method.getName() + "(" + JavassistSummerCompilerUtil._invoker_arguments(parameterTypes) + ");";
-
-        if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
-            invokerCtMethodSrc += invokeSuperStatement;
-            invokerCtMethodSrc += "return null;";
-        } else {
-            invokerCtMethodSrc += " return " + invokeSuperStatement;
-        }
-
-        invokerCtMethodSrc += " } ";
-        return invokerCtMethodSrc;
-    }
-
-    public static String buildReferenceTargetFieldGetterSrc(BeanDefinition beanDefinition, BeanField beanField) {
-        String referenceTargetFieldGetterSrc = "public java.lang.Object getReferenceTarget() { ";
-        referenceTargetFieldGetterSrc += " if(null==this.referenceTarget) { ";
-
-        Field field = Reflect.getDeclaredField(beanDefinition.getBeanType(), beanField.getName());
-        Class<?> fieldType = field.getType();
-        String beanFieldValue = beanField.getValue();
-        if (null == beanFieldValue || beanFieldValue.isEmpty()) {
-            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class);";
-        } else {
-            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class,\"" + beanFieldValue + "\");";
-        }
-
-        referenceTargetFieldGetterSrc += " } ";
-        referenceTargetFieldGetterSrc += " return this.referenceTarget; ";
-        referenceTargetFieldGetterSrc += " } ";
-        return referenceTargetFieldGetterSrc;
-    }
+    //    public static String buildReferenceTargetFieldGetterSrc(BeanDefinition beanDefinition, BeanField beanField) {
+    //        String referenceTargetFieldGetterSrc = "public java.lang.Object getReferenceTarget() { ";
+    //        referenceTargetFieldGetterSrc += " if(null==this.referenceTarget) { ";
+    //
+    //        Field field = Reflect.getDeclaredField(beanDefinition.getBeanType(), beanField.getName());
+    //        Class<?> fieldType = field.getType();
+    //        String beanFieldValue = beanField.getValue();
+    //        if (null == beanFieldValue || beanFieldValue.isEmpty()) {
+    //            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class);";
+    //        } else {
+    //            referenceTargetFieldGetterSrc += "this.referenceTarget = iocContext.getBean(" + fieldType.getName() + ".class,\"" + beanFieldValue + "\");";
+    //        }
+    //
+    //        referenceTargetFieldGetterSrc += " } ";
+    //        referenceTargetFieldGetterSrc += " return this.referenceTarget; ";
+    //        referenceTargetFieldGetterSrc += " } ";
+    //        return referenceTargetFieldGetterSrc;
+    //    }
 
     public static String buildOverrideMethodSrc(Method method) {
         Class<?>[] parameterTypes = method.getParameterTypes();
@@ -71,15 +69,12 @@ public class JavassistSummerCompilerUtil {
         }
 
         src += "AopFilter[] filters = " + _aop_filters_src(method) + ";";
-        src += AopInvoker.class.getName() + " invoker = new " + methodInvokerTypeName(method) + "();";
 
-        MethodPool.putMethod(method.getDeclaringClass().getName() + " " + methodSignature, method);
-        src += "Method method = summer.ioc.MethodPool.getMethod(\"" + method.getDeclaringClass().getName() + " " + methodSignature + "\");"; // 不可为空
-
+        String methodSign = getMethodSignature(method);
         if ("void".equals(returnTypeName)) {
-            src += "new AopChain(this, method, args, filters, invoker).doFilter();";
+            src += "new AopChain(\"" + methodSign + "\",this, getAopTypeMeta().getMethod(\"" + methodSign + "\"), args, filters).doFilter();";
         } else {
-            src += "return (" + returnTypeName + ")new AopChain(this, method, args, filters, invoker).doFilter().getResult();";
+            src += "return (" + returnTypeName + ")new AopChain(\"" + methodSign + "\",this, getAopTypeMeta().getMethod(\"" + methodSign + "\"), args, filters).doFilter().getResult();";
         }
 
         src += "}";
@@ -89,23 +84,23 @@ public class JavassistSummerCompilerUtil {
     private static String _aop_filters_src(Method method) {
         List<String> aopFilters = new ArrayList<String>();
         if (null != method.getAnnotation(At.class)) { // 类型
-            aopFilters.add("summer.aop.util.AopUtil.getParameterAdapterAopFilter(iocContext)");
+            aopFilters.add("summer.aop.util.AopUtil.getParameterAdapterAopFilter(aopTypeMeta.getIocContext())");
         }
 
         Aop aop = method.getAnnotation(Aop.class);
         if (null != aop) {
             for (String aopBeanName : aop.value()) { // 名称
-                aopFilters.add("summer.aop.util.AopUtil.getAopFilter(iocContext,\"" + aopBeanName + "\")");
+                aopFilters.add("summer.aop.util.AopUtil.getAopFilter(aopTypeMeta.getIocContext(),\"" + aopBeanName + "\")");
             }
         }
 
         Transaction transaction = method.getAnnotation(Transaction.class);
         if (null != transaction) { // 名称
-            aopFilters.add("summer.aop.util.AopUtil.getTransactionAopFilter(iocContext)");
+            aopFilters.add("summer.aop.util.AopUtil.getTransactionAopFilter(aopTypeMeta.getIocContext())");
         }
 
         if (null != method.getAnnotation(At.class)) { // 类型
-            aopFilters.add("summer.aop.util.AopUtil.getViewProcessorAopFilter(iocContext)");
+            aopFilters.add("summer.aop.util.AopUtil.getViewProcessorAopFilter(aopTypeMeta.getIocContext())");
         }
 
         if (aopFilters.isEmpty()) {
@@ -113,6 +108,10 @@ public class JavassistSummerCompilerUtil {
         } else {
             return "new AopFilter[]{" + StringUtil.join(aopFilters, ",") + "}";
         }
+    }
+
+    public static String getMethodSignature(Method method) {
+        return method.toGenericString();
     }
 
     public static String methodInvokerTypeName(Method method) {
@@ -127,7 +126,7 @@ public class JavassistSummerCompilerUtil {
         return methodInvokerTypeName;
     }
 
-    private static String _invoker_arguments(Class<?>[] parameterTypes) {
+    public static String _invoker_arguments(Class<?>[] parameterTypes) {
         String src = "";
         for (int i = 0; i < parameterTypes.length; i++) {
             if (i > 0) {
@@ -154,9 +153,9 @@ public class JavassistSummerCompilerUtil {
         String src = "public " + Reflect.typeToJavaCode(method.getReturnType()) + " " + method.getName() + "(" + _parameters(parameterTypes) + "){";
 
         if ("void".equals(Reflect.typeToJavaCode(method.getReturnType()))) {
-            src += "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + _arguments(parameterTypes) + ");";
+            src += "((" + fieldType.getName() + ")getAopTypeMeta().getReferenceTarget())" + "." + method.getName() + "(" + _arguments(parameterTypes) + ");";
         } else {
-            src += "return " + "((" + fieldType.getName() + ")getReferenceTarget())" + "." + method.getName() + "(" + _arguments(parameterTypes) + ");";
+            src += "return " + "((" + fieldType.getName() + ")getAopTypeMeta().getReferenceTarget())" + "." + method.getName() + "(" + _arguments(parameterTypes) + ");";
         }
 
         src += "}";

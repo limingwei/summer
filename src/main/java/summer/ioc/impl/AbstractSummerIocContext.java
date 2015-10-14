@@ -96,9 +96,13 @@ public abstract class AbstractSummerIocContext implements IocContext {
         return beanInstance;
     }
 
-    public abstract Object doGetBean(String id);
+    public Object doGetBean(String id) {
+        return doGetBean(Object.class, id);
+    }
 
-    public abstract <T> T doGetBean(Class<T> type);
+    public <T> T doGetBean(Class<T> type) {
+        return doGetBean(type, IocContext.BEAN_HAS_NO_ID);
+    }
 
     public abstract <T> T doGetBean(Class<T> type, String id);
 }
