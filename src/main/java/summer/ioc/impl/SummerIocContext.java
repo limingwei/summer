@@ -54,16 +54,30 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         this.iocLoader = iocLoader;
 
-        this.beanDefinitions = SummerIocContextUtil.mergeBeanDefinitions(iocLoader.getBeanDefinitions());
-
         this.convertService = new SummerConvertService();
 
         this.beanInstances = new HashMap<BeanDefinition, Object>();
 
         this.summerCompiler = new CachedSummerCompiler(new JavassistSummerCompiler());
 
+        this.beanDefinitions = SummerIocContextUtil.mergeBeanDefinitions(iocLoader.getBeanDefinitions());
+
+        processFactoryBeans();
+
+        initBeans();
+
         log.info("SummerIocContext inited, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
     }
+
+    /**
+     * 初始化配置为需要预先初始化的Bean
+     */
+    private void initBeans() {}
+
+    /**
+     * 执行FactoryBean获得objectType,设置到beanDefinition
+     */
+    private void processFactoryBeans() {}
 
     public List<BeanDefinition> getBeanDefinitions() {
         return beanDefinitions;
@@ -85,18 +99,18 @@ public class SummerIocContext extends AbstractSummerIocContext {
         if (null == instance) { // 延迟初始化
             Class<?> beanType = beanDefinition.getBeanType();
 
-            // TODO 先生成代理, 代理加上Aop, 然后实例化
+            // 生成代理, 代理加上Aop, 然后实例化
             Object beanInstance = newBeanInstance(beanType);
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
-                if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) {
+                if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) { // 判断是否已经初始化, 如果已经初始化, 就直接将Bean注入
                     Field field = Reflect.getDeclaredField(beanType, beanField.getName());
                     Object value = newReferenceInstance(beanDefinition, beanField);
 
                     if (value instanceof AopType) {
                         AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
                         aopTypeMeta.setIocContext(this);
-                        aopTypeMeta.setReferenceName(BEAN_HAS_NO_ID);
+                        aopTypeMeta.setReferenceName(beanField.getValue());
                         aopTypeMeta.setReferenceType(field.getType());
                     }
 
@@ -115,11 +129,11 @@ public class SummerIocContext extends AbstractSummerIocContext {
             if (beanInstance instanceof AopType) {
                 AopTypeMeta aopTypeMeta = ((AopType) beanInstance).getAopTypeMeta();
                 aopTypeMeta.setIocContext(this);
-                Map<String, Method> map = aopTypeMeta.getMethodMap();
 
                 List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
                 for (Method method : methods) {
-                    map.put(JavassistSummerCompilerUtil.getMethodSignature(method), method);
+                    String methodSignature = JavassistSummerCompilerUtil.getMethodSignature(method);
+                    aopTypeMeta.getMethodMap().put(methodSignature, method);
                 }
             }
 

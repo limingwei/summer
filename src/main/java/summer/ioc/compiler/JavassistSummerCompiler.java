@@ -9,7 +9,6 @@ import javassist.CtClass;
 import javassist.CtField;
 import javassist.CtMethod;
 import javassist.LoaderClassPath;
-import summer.aop.AopChain;
 import summer.aop.AopType;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
@@ -34,8 +33,6 @@ public class JavassistSummerCompiler implements SummerCompiler {
 
         ClassPool classPool = new ClassPool(true);
         classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()));
-
-        classPool.importPackage(AopChain.class.getName());
 
         String subClassName = originalTypeName + "_JavassistSummerCompiler_Aop";
         CtClass ctClass = classPool.makeClass(subClassName);

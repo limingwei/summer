@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 
 import summer.aop.AopChain;
 import summer.aop.AopFilter;
+import summer.basic.order.Order;
 import summer.log.Logger;
 import summer.mvc.Mvc;
 import summer.mvc.ParameterAdapter;
@@ -19,6 +20,7 @@ import summer.util.MethodParamNamesScaner;
  * @version 1 (2015年10月12日 下午5:37:13)
  * @since Java7
  */
+@Order(Integer.MIN_VALUE)
 public class ParameterAdapterAopFilter implements AopFilter {
     private static final Logger log = Log.slf4j();
 

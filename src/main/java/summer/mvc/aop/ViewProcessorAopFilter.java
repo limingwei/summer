@@ -5,6 +5,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import summer.aop.AopChain;
 import summer.aop.AopFilter;
+import summer.basic.order.Order;
 import summer.log.Logger;
 import summer.mvc.Mvc;
 import summer.mvc.ViewProcessor;
@@ -16,6 +17,7 @@ import summer.util.Log;
  * @version 1 (2015年10月12日 下午6:53:55)
  * @since Java7
  */
+@Order(Integer.MAX_VALUE)
 public class ViewProcessorAopFilter implements AopFilter {
     private static final Logger log = Log.slf4j();
 

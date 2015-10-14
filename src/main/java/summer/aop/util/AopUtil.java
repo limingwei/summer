@@ -8,6 +8,7 @@ import summer.aop.AopFilter;
 import summer.aop.annotation.Aop;
 import summer.aop.annotation.Transaction;
 import summer.aop.filter.TransactionAopFilter;
+import summer.basic.order.OrderUtil;
 import summer.converter.ConvertService;
 import summer.converter.impl.SummerConvertService;
 import summer.ioc.IocContext;
@@ -76,7 +77,11 @@ public class AopUtil {
         if (null != method.getAnnotation(At.class)) { // 类型
             aopFilters.add(AopUtil.getViewProcessorAopFilter(iocContext));
         }
-        return aopFilters.toArray(new AopFilter[aopFilters.size()]);
+
+        AopFilter[] filters = aopFilters.toArray(new AopFilter[aopFilters.size()]);
+        filters = OrderUtil.sort(filters);
+
+        return filters;
     }
 
     public static AopFilter getAopFilter(IocContext iocContext, String beanId) {
@@ -109,9 +114,13 @@ public class AopUtil {
         }
     }
 
-    public static TransactionAopFilter getTransactionAopFilter(IocContext iocContext) {
-        TransactionAopFilter transactionAopFilter = iocContext.getBean(TransactionAopFilter.class);
-        Assert.noNull(transactionAopFilter, "transactionAopFilter Bean not found");
+    public static AopFilter getTransactionAopFilter(IocContext iocContext) {
+        AopFilter transactionAopFilter;
+        if (iocContext.containsBean("transactionAopFilter")) {
+            transactionAopFilter = (AopFilter) iocContext.getBean("transactionAopFilter");
+        } else {
+            transactionAopFilter = iocContext.getBean(TransactionAopFilter.class);
+        }
         return transactionAopFilter;
     }
 }

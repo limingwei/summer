@@ -58,7 +58,7 @@ public class AnnotationIocLoader implements IocLoader {
                 } else {
                     Class<?> type = AnnotationIocLoaderUtil.classForName(className);
                     if (null == type) {
-                        // 
+                        //
                     } else {
                         Bean beanAnnotation = type.getAnnotation(Bean.class);
                         if (beanAnnotation != null) {
@@ -124,9 +124,9 @@ public class AnnotationIocLoader implements IocLoader {
             for (String pkg : packages) {
                 URL url = AnnotationIocLoaderUtil.getJarPath(pkg);
                 if (null != url) {
-                    // 得到协议的名称  
+                    // 得到协议的名称
                     String protocol = url.getProtocol();
-                    // 如果是以文件的形式保存在服务器上  
+                    // 如果是以文件的形式保存在服务器上
                     if ("jar".equals(protocol)) {
                         JarFile jarFile = ((JarURLConnection) url.openConnection()).getJarFile();
                         Enumeration<JarEntry> entries = jarFile.entries();

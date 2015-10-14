@@ -50,7 +50,7 @@ public class Reflect {
         Method[] methods = originalType.getMethods();
         for (Method method : methods) {
             if (!method.getDeclaringClass().equals(Object.class) //
-                    //                    && !Modifier.isStatic(method.getModifiers())//
+                    // && !Modifier.isStatic(method.getModifiers())//
                     && !Modifier.isFinal(method.getModifiers())) {
                 list.add(method);
             }

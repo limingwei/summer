@@ -75,7 +75,7 @@ public class SummerIocContextUtil {
             List<BeanField> beanFields = beanDefinition.getBeanFields();
             for (BeanField beanField1 : beanFields) {
                 for (BeanField beanField2 : beanFields) {
-                    if (!beanField1.equals(beanField2) // 
+                    if (!beanField1.equals(beanField2) //
                             && beanField1.getName().equals(beanField2.getName())) {
                         throw new RuntimeException("同一属性多次注入, beanId=" + beanDefinition.getId() + ", beanType=" + beanDefinition.getBeanType() + ", fieldName=" + beanField1.getName());
                     }

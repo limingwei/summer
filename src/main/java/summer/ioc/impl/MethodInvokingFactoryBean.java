@@ -8,6 +8,16 @@ import summer.ioc.FactoryBean;
  * @since Java7
  */
 public class MethodInvokingFactoryBean implements FactoryBean<Object> {
+    private Class<?> objectType;
+
+    public Class<?> getObjectType() {
+        return this.objectType;
+    }
+
+    public void setObjectType(Class<?> objectType) {
+        this.objectType = objectType;
+    }
+
     public Object getObject() {
         throw new RuntimeException();
     }

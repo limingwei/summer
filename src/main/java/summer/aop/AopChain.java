@@ -1,9 +1,7 @@
 package summer.aop;
 
 import java.lang.reflect.Method;
-import java.util.List;
 
-import summer.util.ListUtil;
 import summer.util.StringUtil;
 
 /**
@@ -37,7 +35,7 @@ public class AopChain {
     /**
      * AopFilter列表
      */
-    private List<AopFilter> filters;
+    private AopFilter[] filters;
 
     /**
      * AopFilter索引,指示当前执行到filter链中的第几个filter
@@ -93,17 +91,17 @@ public class AopChain {
         this.methodSignature = methodSignature;
         this.method = aopTypeMeta.getMethodMap().get(methodSignature);
         this.args = args;
-        this.filters = ListUtil.newList(aopTypeMeta.getAopFilters(methodSignature));
+        this.filters = aopTypeMeta.getAopFilters(methodSignature);
     }
 
     /**
      * 执行AopChain,执行下一个AopFilter或者执行被代理方法
      */
     public AopChain doFilter() {
-        if (null == filters || index >= filters.size()) { // 如果没有AopFilter或者已经经过全部AopFilter
+        if (null == filters || index >= filters.length) { // 如果没有AopFilter或者已经经过全部AopFilter
             invoke(); // 执行目标方法
         } else { // 还有AopFilter
-            filters.get(index++).doFilter(this); // 执行第index个AopFilter然后index++
+            filters[index++].doFilter(this); // 执行第index个AopFilter然后index++
         }
         return this;
     }

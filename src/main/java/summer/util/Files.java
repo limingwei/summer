@@ -26,10 +26,15 @@ public class Files {
 
     /**
      * 根据文件名正则表达式搜索一个路径下的文件,返回文件路径的List
-     * @param file 要搜索的目录
-     * @param regex 要求文件路径要符合的正则表达式
-     * @param increase 是否递进搜索
-     * @param fileOrFloder 1 文件 2 文件夹
+     * 
+     * @param file
+     *            要搜索的目录
+     * @param regex
+     *            要求文件路径要符合的正则表达式
+     * @param increase
+     *            是否递进搜索
+     * @param fileOrFloder
+     *            1 文件 2 文件夹
      * @return 文件绝对路径列表
      */
     public static List<String> list(File file, String regex, Boolean increase, Integer fileOrFloder) {

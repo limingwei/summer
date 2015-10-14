@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import summer.aop.AopChain;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.util.Reflect;
@@ -27,6 +28,8 @@ public class JavassistSummerCompilerUtil {
             if ("void".equals(methodReturnTypeName)) {
                 src += "super." + methodName + "(" + argumentsCasted + ");";
                 src += "return null;";
+            } else if ("int".equals(methodReturnTypeName)) {
+                src += "return java.lang.Integer.valueOf(super." + methodName + "(" + argumentsCasted + "));";
             } else {
                 src += "return super." + methodName + "(" + argumentsCasted + ");";
             }
@@ -50,6 +53,22 @@ public class JavassistSummerCompilerUtil {
             if ("void".equals(methodReturnTypeName)) {
                 src += "this." + methodName + "(" + argumentsCasted + ");";
                 src += "return null;";
+            } else if ("byte".equals(methodReturnTypeName)) {
+                src += "return java.lang.Byte.valueOf(this." + methodName + "(" + argumentsCasted + "));";
+            } else if ("short".equals(methodReturnTypeName)) {
+                src += "return java.lang.Short.valueOf(this." + methodName + "(" + argumentsCasted + "));";
+            } else if ("int".equals(methodReturnTypeName)) {
+                src += "return java.lang.Integer.valueOf(this." + methodName + "(" + argumentsCasted + "));";
+            } else if ("long".equals(methodReturnTypeName)) {
+                src += "return java.lang.Long.valueOf(this." + methodName + "(" + argumentsCasted + "));";
+            } else if ("double".equals(methodReturnTypeName)) {
+                src += "return java.lang.Double.valueOf(this." + methodName + "(" + argumentsCasted + "));";
+            } else if ("float".equals(methodReturnTypeName)) {
+                src += "return java.lang.Float.valueOf(this." + methodName + "(" + argumentsCasted + "));";
+            } else if ("boolean".equals(methodReturnTypeName)) {
+                src += "return java.lang.Boolean.valueOf(this." + methodName + "(" + argumentsCasted + "));";
+            } else if ("char".equals(methodReturnTypeName)) {
+                src += "return java.lang.Character.valueOf(this." + methodName + "(" + argumentsCasted + "));";
             } else {
                 src += "return this." + methodName + "(" + argumentsCasted + ");";
             }
@@ -72,9 +91,25 @@ public class JavassistSummerCompilerUtil {
         String args = (0 == parameterTypes.length) ? "new Object[0]" : "new Object[] { " + argumentsPrimitived(parameterTypes) + " }";
 
         if ("void".equals(returnTypeName)) {
-            src += "new AopChain(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter();";
+            src += "new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter();";
+        } else if ("byte".equals(returnTypeName)) {
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Byte)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+        } else if ("short".equals(returnTypeName)) {
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Short)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+        } else if ("int".equals(returnTypeName)) {
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Integer)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+        } else if ("long".equals(returnTypeName)) {
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Long)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+        } else if ("double".equals(returnTypeName)) {
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Double)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+        } else if ("float".equals(returnTypeName)) {
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Float)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+        } else if ("char".equals(returnTypeName)) {
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Character)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+        } else if ("boolean".equals(returnTypeName)) {
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Boolean)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
         } else {
-            src += "return (" + returnTypeName + ")new AopChain(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult();";
+            src += "return (" + returnTypeName + ")new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult();";
         }
         src += "}";
         return src;

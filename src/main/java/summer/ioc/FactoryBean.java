@@ -6,5 +6,7 @@ package summer.ioc;
  * @since Java7
  */
 public interface FactoryBean<T> {
+    public Class<?> getObjectType();
+
     public T getObject();
 }

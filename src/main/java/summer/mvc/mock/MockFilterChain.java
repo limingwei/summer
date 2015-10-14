@@ -38,11 +38,11 @@ public class MockFilterChain implements FilterChain {
      */
     public void doFilter(ServletRequest request, ServletResponse response) throws IOException, ServletException {
         if (null == filters || _index >= filters.size()) {// 如果没有AopFilter或者已经经过全部AopFilter
-            // 执行目标方法 
+            // 执行目标方法
             PrintWriter printWriter = response.getWriter();
             printWriter.append("404404404404404404404404404404");
             printWriter.flush();
-        } else {// 还有AopFilter 
+        } else {// 还有AopFilter
             filters.get(_index++).doFilter(request, response, this);
         }
     }

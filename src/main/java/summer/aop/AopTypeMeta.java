@@ -57,7 +57,8 @@ public class AopTypeMeta implements Serializable {
     public AopFilter[] getAopFilters(String methodSignature) {
         AopFilter[] aopFilters = methodAopFiltersMap.get(methodSignature);
         if (null == aopFilters) {
-            methodAopFiltersMap.put(methodSignature, aopFilters = AopUtil.getAopFilters(getMethodMap().get(methodSignature), iocContext));
+            Method method = getMethodMap().get(methodSignature);
+            methodAopFiltersMap.put(methodSignature, aopFilters = AopUtil.getAopFilters(method, iocContext));
         }
         return aopFilters;
     }
