@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import summer.ioc.IocContext;
 import summer.ioc.util.IocUtil;
 import summer.log.Logger;
-import summer.mvc.impl.SummerMvcContext;
+import summer.mvc.impl.SummerActionContext;
 import summer.util.Log;
 
 /**
@@ -22,7 +22,7 @@ public class SummerDispatcher {
 
     private IocContext iocContext;
 
-    private MvcContext mvcContext;
+    private ActionContext mvcContext;
 
     private ActionInvokeService actionInvokeService;
 
@@ -34,9 +34,9 @@ public class SummerDispatcher {
         return iocContext;
     }
 
-    public MvcContext getMvcContext() {
+    public ActionContext getMvcContext() {
         if (null == mvcContext) {
-            mvcContext = new SummerMvcContext(getIocContext());
+            mvcContext = new SummerActionContext(getIocContext());
         }
         return mvcContext;
     }

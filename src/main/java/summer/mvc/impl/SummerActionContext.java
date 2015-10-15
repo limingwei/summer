@@ -11,7 +11,7 @@ import summer.ioc.BeanDefinition;
 import summer.ioc.IocContext;
 import summer.log.Logger;
 import summer.mvc.ActionHandler;
-import summer.mvc.MvcContext;
+import summer.mvc.ActionContext;
 import summer.mvc.annotation.At;
 import summer.util.Log;
 import summer.util.Reflect;
@@ -21,7 +21,7 @@ import summer.util.Reflect;
  * @version 1 (2015年10月12日 下午3:34:29)
  * @since Java7
  */
-public class SummerMvcContext implements MvcContext {
+public class SummerActionContext implements ActionContext {
     private static final Logger log = Log.slf4j();
 
     private Map<String, ActionHandler> actionHandlerMapping;
@@ -32,7 +32,7 @@ public class SummerMvcContext implements MvcContext {
         return iocContext;
     }
 
-    public SummerMvcContext(IocContext iocContext) {
+    public SummerActionContext(IocContext iocContext) {
         this.iocContext = iocContext;
         initSummerMvcContext();
     }
