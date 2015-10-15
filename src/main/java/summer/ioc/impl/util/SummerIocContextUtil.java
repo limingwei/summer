@@ -11,9 +11,7 @@ import java.util.Set;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.FactoryBean;
-import summer.ioc.IocContext;
 import summer.log.Logger;
-import summer.util.Assert;
 import summer.util.Log;
 import summer.util.Reflect;
 
@@ -99,10 +97,9 @@ public class SummerIocContextUtil {
     }
 
     public static BeanDefinition findMatchBeanDefinition(List<BeanDefinition> beanDefinitions, Class<?> type, String id) {
-        Assert.noEmpty(id, "id 不可以为空");
-
         for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (isBeanTypeMatch(type, beanDefinition) && (id.equals(beanDefinition.getId()) || IocContext.BEAN_HAS_NO_ID.equals(id))) {
+            if (isBeanTypeMatch(type, beanDefinition) // 
+                    && ((null == id || id.isEmpty()) || id.equals(beanDefinition.getId()))) {
                 return beanDefinition;
             }
         }

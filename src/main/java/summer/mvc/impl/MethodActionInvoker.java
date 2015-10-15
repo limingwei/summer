@@ -33,7 +33,6 @@ public class MethodActionInvoker implements ActionInvoker {
         Method method = methodActionHandler.getMethod();
         BeanDefinition beanDefinition = methodActionHandler.getBeanDefinition();
         String beanId = beanDefinition.getId();
-        beanId = (null == beanId || beanId.isEmpty()) ? IocContext.BEAN_HAS_NO_ID : beanId;
 
         this.actionMethod = method;
         this.actionBean = iocContext.getBean(beanDefinition.getBeanType(), beanId);

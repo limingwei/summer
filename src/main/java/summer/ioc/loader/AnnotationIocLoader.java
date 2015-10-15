@@ -64,7 +64,9 @@ public class AnnotationIocLoader implements IocLoader {
                         if (beanAnnotation != null) {
                             BeanDefinition beanDefinition = new BeanDefinition(); // 一个新的Bean
                             beanDefinition.setBeanType(type);
-                            beanDefinition.setId(beanAnnotation.value());
+                            String beanId = beanAnnotation.value();
+                            beanId = (null == beanId || beanId.isEmpty()) ? type.getName() : beanId;
+                            beanDefinition.setId(beanId);
                             beanDefinition.setBeanFields(new ArrayList<BeanField>());
 
                             List<Field> fields = Reflect.getDeclaredFields(type);

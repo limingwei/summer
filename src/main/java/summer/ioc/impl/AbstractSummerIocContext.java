@@ -18,7 +18,7 @@ public abstract class AbstractSummerIocContext implements IocContext {
     private Map<String, Boolean> containsCacheByTypeAndIdMap = new HashMap<String, Boolean>();
 
     public synchronized Boolean containsBean(Class<?> type) {
-        return containsBean(type, BEAN_HAS_NO_ID);
+        return containsBean(type, null);
     }
 
     public synchronized Boolean containsBean(String id) {
@@ -39,7 +39,7 @@ public abstract class AbstractSummerIocContext implements IocContext {
     }
 
     public <T> T getBean(Class<T> type) {
-        return getBean(type, BEAN_HAS_NO_ID);
+        return getBean(type, null);
     }
 
     public synchronized <T> T getBean(Class<T> type, String id) {

@@ -60,13 +60,11 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         this.summerCompiler = new CachedSummerCompiler(new JavassistSummerCompiler());
 
-        this.beanDefinitions = SummerIocContextUtil.mergeBeanDefinitions(iocLoader.getBeanDefinitions());
-
         processFactoryBeans();
 
         initBeans();
 
-        log.info("SummerIocContext inited, iocLoader={}, beanDefinitions={}, convertService={}", iocLoader, beanDefinitions, convertService);
+        log.info("SummerIocContext inited, iocLoader={}, convertService={}", iocLoader, convertService);
     }
 
     /**
@@ -79,7 +77,11 @@ public class SummerIocContext extends AbstractSummerIocContext {
      */
     private void processFactoryBeans() {}
 
-    public List<BeanDefinition> getBeanDefinitions() {
+    public synchronized List<BeanDefinition> getBeanDefinitions() {
+        if (null == beanDefinitions) {
+            List<BeanDefinition> allBeanDefinitions = getIocLoader().getBeanDefinitions();
+            this.beanDefinitions = SummerIocContextUtil.mergeBeanDefinitions(allBeanDefinitions);
+        }
         return beanDefinitions;
     }
 
@@ -87,8 +89,8 @@ public class SummerIocContext extends AbstractSummerIocContext {
         if (IocContext.class.equals(type)) {
             return (T) this;
         } else {
-            BeanDefinition beanDefinition = SummerIocContextUtil.findMatchBeanDefinition(beanDefinitions, type, id);
-            Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", id=" + id + ", beanDefinitions=" + beanDefinitions);
+            BeanDefinition beanDefinition = SummerIocContextUtil.findMatchBeanDefinition(getBeanDefinitions(), type, id);
+            Assert.noNull(beanDefinition, "not found BeanDefinition for type " + type + ", id=" + id + ", beanDefinitions=" + getBeanDefinitions());
 
             return (T) SummerIocContextUtil.unwrapFactoryBean(getBeanInstance(beanDefinition));
         }

@@ -8,8 +8,6 @@ import java.util.List;
  * @since Java7
  */
 public interface IocContext {
-    static final String BEAN_HAS_NO_ID = "BEAN_HAS_NO_ID";
-
     public Object getBean(String id);
 
     public <T> T getBean(Class<T> type);
