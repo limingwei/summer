@@ -111,7 +111,12 @@ public class Reflect {
         try {
             return targetType.getDeclaredField(name);
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException(targetType + " do not has field " + name, e);
+            Class<?> superType = targetType.getSuperclass();
+            if (!Object.class.equals(superType)) {
+                return getDeclaredField(superType, name);
+            } else {
+                throw new RuntimeException(targetType + " do not has field " + name, e);
+            }
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
