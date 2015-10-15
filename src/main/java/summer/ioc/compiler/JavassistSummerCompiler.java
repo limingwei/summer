@@ -56,8 +56,8 @@ public class JavassistSummerCompiler implements SummerCompiler {
         // 传入类型是接口
         if (!originalType.isInterface()) {
             addAopTypeInvokeMethod(ctClass, methods);
+            addAopTypeCallMethod(ctClass, methods);
         }
-        addAopTypeCallMethod(ctClass, methods);
 
         log.info("compileClass for" + originalTypeName);
         return JavassistUtil.ctClassToClass(ctClass);
