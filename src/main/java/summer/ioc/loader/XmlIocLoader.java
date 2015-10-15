@@ -1,6 +1,7 @@
 package summer.ioc.loader;
 
 import java.io.InputStream;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -66,12 +67,12 @@ public class XmlIocLoader implements IocLoader {
 
         beanDefinition.setId(beanId);
 
-        beanDefinition.setBeanFields(parseBeanFields(node));
+        beanDefinition.setBeanFields(parseBeanFields(node, beanDefinition));
 
         return beanDefinition;
     }
 
-    private static List<BeanField> parseBeanFields(Node node) {
+    private static List<BeanField> parseBeanFields(Node node, BeanDefinition beanDefinition) {
         List<BeanField> beanFields = new ArrayList<BeanField>();
         NamedNodeMap attributes = node.getAttributes();
         for (int i = 0; i < attributes.getLength(); i++) {
@@ -81,10 +82,16 @@ public class XmlIocLoader implements IocLoader {
 
             if (name.startsWith("p:")) {
                 String fieldName = name.substring(2);
-                beanFields.add(new BeanField(BeanField.INJECT_TYPE_VALUE, fieldName, value));
+                BeanField beanField = new BeanField(BeanField.INJECT_TYPE_VALUE, fieldName, value);
+                Field declaredField = Reflect.getDeclaredField(beanDefinition.getBeanType(), fieldName);
+                beanField.setType(declaredField.getType());
+                beanFields.add(beanField);
             } else if (name.startsWith("ref:")) {
                 String fieldName = name.substring(4);
-                beanFields.add(new BeanField(BeanField.INJECT_TYPE_REFERENCE, fieldName, value));
+                BeanField beanField = new BeanField(BeanField.INJECT_TYPE_REFERENCE, fieldName, value);
+                Field declaredField = Reflect.getDeclaredField(beanDefinition.getBeanType(), fieldName);
+                beanField.setType(declaredField.getType());
+                beanFields.add(beanField);
             }
         }
 

@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import summer.aop.util.AopUtil;
+import summer.ioc.BeanField;
 import summer.ioc.IocContext;
-import summer.util.Assert;
 
 /**
  * @author li
@@ -23,43 +23,47 @@ public class AopTypeMeta implements Serializable {
 
     private IocContext iocContext;
 
-    private Object referenceTarget;
+    private BeanField beanField;
 
-    private String referenceName;
-
-    private Class<?> referenceType;
+    private Object target;
 
     public Map<String, Method> getMethodMap() {
         return methodMap;
     }
 
-    public void setReferenceName(String referenceName) {
-        this.referenceName = referenceName;
+    public void setTarget(Object target) {
+        this.target = target;
     }
 
-    public void setReferenceType(Class<?> referenceType) {
-        this.referenceType = referenceType;
+    public void setBeanField(BeanField beanField) {
+        this.beanField = beanField;
     }
 
     public void setIocContext(IocContext iocContext) {
         this.iocContext = iocContext;
     }
 
-    public synchronized Object getReferenceTarget() {
-        if (null == referenceTarget) {
-            IocContext ioc = iocContext;
-            Assert.noNull(ioc, "IocContext is null");
-            referenceTarget = ioc.getBean(referenceType, referenceName);
+    public AopFilter[] getAopFilters(String methodSignature) {
+        if (null == beanField) {
+            AopFilter[] aopFilters = methodAopFiltersMap.get(methodSignature);
+            if (null == aopFilters) {
+                Method method = getMethodMap().get(methodSignature);
+                methodAopFiltersMap.put(methodSignature, aopFilters = AopUtil.getAopFilters(method, iocContext));
+            }
+            return aopFilters;
+        } else {
+            return new AopFilter[0];
         }
-        return referenceTarget;
     }
 
-    public AopFilter[] getAopFilters(String methodSignature) {
-        AopFilter[] aopFilters = methodAopFiltersMap.get(methodSignature);
-        if (null == aopFilters) {
-            Method method = getMethodMap().get(methodSignature);
-            methodAopFiltersMap.put(methodSignature, aopFilters = AopUtil.getAopFilters(method, iocContext));
+    public Object getInvokeTarget() {// 第一次target为空表示是属性代理对象
+        return null != target ? target : getBeanFieldReferenceInjectDelegateTarget(iocContext, beanField);
+    }
+
+    private synchronized Object getBeanFieldReferenceInjectDelegateTarget(IocContext iocContext, BeanField beanField) {
+        if (null == target) { // 第一次target为空表示是属性代理对象
+            target = iocContext.getBean(beanField.getType(), beanField.getValue());
         }
-        return aopFilters;
+        return target;
     }
 }

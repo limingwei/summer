@@ -26,7 +26,6 @@ public class Files {
 
     /**
      * 根据文件名正则表达式搜索一个路径下的文件,返回文件路径的List
-     * 
      * @param file
      *            要搜索的目录
      * @param regex

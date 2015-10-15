@@ -1,12 +1,9 @@
 package summer.ioc.compiler.util;
 
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
 import summer.aop.AopChain;
-import summer.ioc.BeanDefinition;
-import summer.ioc.BeanField;
 import summer.util.Reflect;
 
 /**
@@ -91,46 +88,26 @@ public class JavassistSummerCompilerUtil {
         String args = (0 == parameterTypes.length) ? "new Object[0]" : "new Object[] { " + argumentsPrimitived(parameterTypes) + " }";
 
         if ("void".equals(returnTypeName)) {
-            src += "new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter();";
+            src += "new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter();";
         } else if ("byte".equals(returnTypeName)) {
-            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Byte)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Byte)new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
         } else if ("short".equals(returnTypeName)) {
-            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Short)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Short)new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
         } else if ("int".equals(returnTypeName)) {
-            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Integer)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Integer)new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
         } else if ("long".equals(returnTypeName)) {
-            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Long)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Long)new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
         } else if ("double".equals(returnTypeName)) {
-            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Double)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Double)new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
         } else if ("float".equals(returnTypeName)) {
-            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Float)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Float)new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
         } else if ("char".equals(returnTypeName)) {
-            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Character)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Character)new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
         } else if ("boolean".equals(returnTypeName)) {
-            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Boolean)new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
+            src += "return summer.aop.util.AopUtil.valueOf((java.lang.Boolean)new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult());";
         } else {
-            src += "return (" + returnTypeName + ")new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult();";
+            src += "return (" + returnTypeName + ")new " + AopChain.class.getName() + "(" + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter().getResult();";
         }
-        src += "}";
-        return src;
-    }
-
-    public static String buildCallDelegateOverrideAopMethodSrc(Method method, BeanDefinition beanDefinition, BeanField beanField) {
-        Field field = Reflect.getDeclaredField(beanDefinition.getBeanType(), beanField.getName());
-        Class<?> fieldType = field.getType();
-        Class<?>[] parameterTypes = method.getParameterTypes();
-        String returnTypeName = Reflect.typeToJavaCode(method.getReturnType());
-        String methodName = method.getName();
-        String fieldTypeName = fieldType.getName();
-
-        String src = "public " + returnTypeName + " " + methodName + "(" + parameters(parameterTypes) + "){";
-
-        if ("void".equals(returnTypeName)) {
-            src += "((" + fieldTypeName + ")getAopTypeMeta().getReferenceTarget())" + "." + methodName + "(" + argumentsOriginal(parameterTypes) + ");";
-        } else {
-            src += "return " + "((" + fieldTypeName + ")getAopTypeMeta().getReferenceTarget())" + "." + methodName + "(" + argumentsOriginal(parameterTypes) + ");";
-        }
-
         src += "}";
         return src;
     }
@@ -156,20 +133,6 @@ public class JavassistSummerCompilerUtil {
                 src += ", ";
             }
             src += Reflect.typeToJavaCode(parameterTypes[i]) + " _param_" + i;
-        }
-        return src;
-    }
-
-    /**
-     * 原本的实参列表
-     */
-    private static String argumentsOriginal(Class<?>[] parameterTypes) {
-        String src = "";
-        for (int i = 0; i < parameterTypes.length; i++) {
-            if (i > 0) {
-                src += ", ";
-            }
-            src += " _param_" + i;
         }
         return src;
     }

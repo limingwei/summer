@@ -74,6 +74,8 @@ public class AnnotationIocLoader implements IocLoader {
                                     BeanField beanField = new BeanField(); // 一个新的Field
                                     beanField.setName(field.getName());
                                     beanField.setValue(injectAnnotation.value());
+                                    beanField.setType(field.getType());
+
                                     String injectType = Reflect.isPrimitiveType(field.getType()) ? BeanField.INJECT_TYPE_VALUE : BeanField.INJECT_TYPE_REFERENCE;
                                     beanField.setInjectType(injectType);
                                     beanDefinition.getBeanFields().add(beanField);

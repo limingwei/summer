@@ -105,14 +105,11 @@ public class SummerIocContext extends AbstractSummerIocContext {
             for (BeanField beanField : beanDefinition.getBeanFields()) {
                 if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) { // 判断是否已经初始化, 如果已经初始化, 就直接将Bean注入
                     Field field = Reflect.getDeclaredField(beanType, beanField.getName());
-                    Object value = newReferenceInstance(beanDefinition, beanField);
 
-                    if (value instanceof AopType) {
-                        AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
-                        aopTypeMeta.setIocContext(this);
-                        aopTypeMeta.setReferenceName(beanField.getValue());
-                        aopTypeMeta.setReferenceType(field.getType());
-                    }
+                    Object value = newBeanInstance(field.getType());
+                    AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
+                    aopTypeMeta.setIocContext(this);
+                    aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
 
                     Reflect.setFieldValue(beanInstance, field, value);
                 } else {
@@ -129,6 +126,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
             if (beanInstance instanceof AopType) {
                 AopTypeMeta aopTypeMeta = ((AopType) beanInstance).getAopTypeMeta();
                 aopTypeMeta.setIocContext(this);
+                aopTypeMeta.setTarget(beanInstance); // 当前Bean实例
 
                 List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
                 for (Method method : methods) {
@@ -143,11 +141,6 @@ public class SummerIocContext extends AbstractSummerIocContext {
             instance = beanInstance;
         }
         return instance;
-    }
-
-    private Object newReferenceInstance(BeanDefinition beanDefinition, BeanField beanField) {
-        Class<?> type = summerCompiler.compileReference(beanDefinition, beanField);
-        return Reflect.newInstance(type);
     }
 
     private Object newBeanInstance(Class<?> beanType) {

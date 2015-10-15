@@ -42,18 +42,13 @@ public abstract class AbstractSummerIocContext implements IocContext {
         return getBean(type, BEAN_HAS_NO_ID);
     }
 
-    public <T> T getBean(Class<T> type, String id) {
+    public synchronized <T> T getBean(Class<T> type, String id) {
         String key = type + "," + id;
         Object beanInstance = cacheByTypeAndIdMap.get(key);
         if (null == beanInstance) {
-            synchronized (cacheByTypeAndIdMap) {
-                beanInstance = cacheByTypeAndIdMap.get(key);
-                if (null == beanInstance) {
-                    T instance = doGetBean(type, id);
-                    cacheByTypeAndIdMap.put(key, instance);
-                    beanInstance = instance;
-                }
-            }
+            T instance = doGetBean(type, id);
+            cacheByTypeAndIdMap.put(key, instance);
+            beanInstance = instance;
         }
         return (T) beanInstance;
     }

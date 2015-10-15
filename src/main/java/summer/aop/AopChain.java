@@ -86,8 +86,8 @@ public class AopChain {
         return this;
     }
 
-    public AopChain(Object target, String methodSignature, Object[] args, AopTypeMeta aopTypeMeta) {
-        this.target = target;
+    public AopChain(String methodSignature, Object[] args, AopTypeMeta aopTypeMeta) {
+        this.target = aopTypeMeta.getInvokeTarget();
         this.methodSignature = methodSignature;
         this.method = aopTypeMeta.getMethodMap().get(methodSignature);
         this.args = args;

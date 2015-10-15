@@ -14,6 +14,8 @@ public class BeanField {
 
     private String name;
 
+    private Class<?> type;
+
     private String value;
 
     public BeanField() {}
@@ -22,6 +24,14 @@ public class BeanField {
         this.injectType = injectType;
         this.name = name;
         this.value = value;
+    }
+
+    public Class<?> getType() {
+        return type;
+    }
+
+    public void setType(Class<?> type) {
+        this.type = type;
     }
 
     public String getInjectType() {

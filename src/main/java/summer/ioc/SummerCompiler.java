@@ -7,6 +7,4 @@ package summer.ioc;
  */
 public interface SummerCompiler {
     public Class<?> compileClass(Class<?> originalType);
-
-    public Class<?> compileReference(BeanDefinition beanDefinition, BeanField beanField);
 }
