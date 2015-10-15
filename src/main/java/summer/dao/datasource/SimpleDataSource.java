@@ -77,7 +77,7 @@ public class SimpleDataSource implements DataSource {
     }
 
     public java.util.logging.Logger getParentLogger() throws SQLFeatureNotSupportedException {
-        throw new RuntimeException();
+        throw new SQLFeatureNotSupportedException("未实现");
     }
 
     /**

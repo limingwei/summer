@@ -90,7 +90,7 @@ public class AnnotationIocLoader implements IocLoader {
                     }
                 }
             } catch (Throwable e) {
-                throw new RuntimeException(e);
+                throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
             }
         }
 
@@ -148,7 +148,7 @@ public class AnnotationIocLoader implements IocLoader {
             }
             return classFileList;
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 }

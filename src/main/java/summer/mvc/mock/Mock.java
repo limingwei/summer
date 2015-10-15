@@ -37,7 +37,7 @@ public class Mock {
             filterChain.setFilters(new ArrayList<Filter>(Arrays.asList(summerFilter)));
             return filterChain;
         } catch (Exception e) {
-            throw new RuntimeException();
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 

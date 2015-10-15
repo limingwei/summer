@@ -19,6 +19,6 @@ public class MethodInvokingFactoryBean implements FactoryBean<Object> {
     }
 
     public Object getObject() {
-        throw new RuntimeException();
+        throw new RuntimeException("未实现");
     }
 }

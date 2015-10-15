@@ -16,7 +16,7 @@ public class Xml {
         try {
             return DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(inputStream);
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 }

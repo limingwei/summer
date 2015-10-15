@@ -20,7 +20,7 @@ public class Files {
         try {
             return new File(Thread.currentThread().getContextClassLoader().getResource("").toURI().getPath());
         } catch (URISyntaxException e) {
-            throw new RuntimeException(e + " ", e);
+            throw new RuntimeException(e);
         }
     }
 

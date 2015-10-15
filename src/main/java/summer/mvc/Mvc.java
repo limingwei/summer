@@ -64,7 +64,7 @@ public class Mvc {
         try {
             getRequest().getRequestDispatcher(path).forward(getRequest(), getResponse());
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 }

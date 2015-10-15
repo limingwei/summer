@@ -43,7 +43,7 @@ public abstract class AbstractSummerDao {
             getPreparedStatementParameterSetter().setParameters(preparedStatement, parameters);
             return preparedStatement.executeUpdate();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 
@@ -55,7 +55,7 @@ public abstract class AbstractSummerDao {
             ResultSet resultSet = preparedStatement.executeQuery();
             return resultSetTransformer.transform(resultSet);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 }

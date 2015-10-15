@@ -114,7 +114,7 @@ public class AopChain {
         try {
             setResult(((AopType) getTarget()).invoke(methodSignature, getArgs()));
         } catch (Throwable e) {
-            throw new RuntimeException(e + " ", e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
         return this;
     }

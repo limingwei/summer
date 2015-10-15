@@ -62,7 +62,7 @@ public class Reflect {
         try {
             return type.newInstance();
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 
@@ -71,7 +71,7 @@ public class Reflect {
             field.setAccessible(true);
             field.set(target, value);
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 
@@ -82,7 +82,7 @@ public class Reflect {
         } catch (IllegalArgumentException e) {
             throw new RuntimeException("IllegalArgument, method=" + method + ", parameterTypes=" + typeToString(method.getParameterTypes()) + ", args=" + argsToString(args) + ", argTypes=" + argTypesToString(args));
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 
@@ -118,7 +118,7 @@ public class Reflect {
                 throw new RuntimeException(targetType + " do not has field " + name, e);
             }
         } catch (Throwable e) {
-            throw new RuntimeException(e);
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }
     }
 
