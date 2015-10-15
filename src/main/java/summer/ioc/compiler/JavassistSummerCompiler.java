@@ -23,6 +23,8 @@ import summer.util.Reflect;
  */
 // com.alibaba.dubbo.common.compiler.support.JavassistCompiler
 public class JavassistSummerCompiler implements SummerCompiler {
+    private static final String AOP_TYPE_NAME_SUFFIX = "_Aop";
+
     private static final Logger log = Log.slf4j();
 
     public Class<?> compileClass(Class<?> originalType) {
@@ -31,7 +33,7 @@ public class JavassistSummerCompiler implements SummerCompiler {
         ClassPool classPool = new ClassPool(true);
         classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()));
 
-        String subClassName = originalTypeName + "_JavassistSummerCompiler_Aop";
+        String subClassName = originalTypeName + AOP_TYPE_NAME_SUFFIX;
         CtClass ctClass = classPool.makeClass(subClassName);
         CtClass superCtClass = JavassistUtil.getCtClass(classPool, originalTypeName);
 
