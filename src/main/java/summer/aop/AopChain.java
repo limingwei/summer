@@ -87,11 +87,12 @@ public class AopChain {
     }
 
     public AopChain(String methodSignature, Object[] args, AopTypeMeta aopTypeMeta) {
-        this.target = aopTypeMeta.getInvokeTarget();
         this.methodSignature = methodSignature;
-        this.method = aopTypeMeta.getMethodMap().get(methodSignature);
         this.args = args;
+
+        this.method = aopTypeMeta.getMethodMap().get(methodSignature);
         this.filters = aopTypeMeta.getAopFilters(methodSignature);
+        this.target = aopTypeMeta.getTarget();
     }
 
     /**

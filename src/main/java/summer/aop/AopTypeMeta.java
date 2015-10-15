@@ -56,12 +56,16 @@ public class AopTypeMeta implements Serializable {
         }
     }
 
-    public Object getInvokeTarget() {// 第一次target为空表示是属性代理对象
+    /**
+     * Aop对象target不为空
+     * 属性代理对象第一次target为空
+     */
+    public Object getTarget() {
         return null != target ? target : getBeanFieldReferenceInjectDelegateTarget(iocContext, beanField);
     }
 
     private synchronized Object getBeanFieldReferenceInjectDelegateTarget(IocContext iocContext, BeanField beanField) {
-        if (null == target) { // 第一次target为空表示是属性代理对象
+        if (null == target) {
             target = iocContext.getBean(beanField.getType(), beanField.getValue());
         }
         return target;
