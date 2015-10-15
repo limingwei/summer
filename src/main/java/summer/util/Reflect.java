@@ -37,14 +37,6 @@ public class Reflect {
         throw new RuntimeException("ParameterizedType not found, type=" + type + ", genericInterfaceType=" + genericInterfaceType);
     }
 
-    public static String typeToJavaCode(Class<?> type) {
-        if (type.isArray()) {
-            return type.getComponentType().getName() + "[]";
-        } else {
-            return type.getName();
-        }
-    }
-
     public static List<Method> getPublicMethods(Class<?> originalType) {
         List<Method> list = new ArrayList<Method>();
         Method[] methods = originalType.getMethods();

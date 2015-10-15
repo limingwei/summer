@@ -9,9 +9,8 @@ import summer.aop.annotation.Aop;
 import summer.aop.annotation.Transaction;
 import summer.aop.filter.TransactionAopFilter;
 import summer.basic.order.OrderUtil;
-import summer.converter.ConvertService;
-import summer.converter.impl.SummerConvertService;
 import summer.ioc.IocContext;
+import summer.ioc.util.IocUtil;
 import summer.mvc.ParameterAdapter;
 import summer.mvc.ViewProcessor;
 import summer.mvc.annotation.At;
@@ -19,7 +18,6 @@ import summer.mvc.aop.ParameterAdapterAopFilter;
 import summer.mvc.aop.ViewProcessorAopFilter;
 import summer.mvc.impl.SummerParameterAdapter;
 import summer.mvc.impl.SummerViewProcessor;
-import summer.util.Assert;
 
 /**
  * @author li
@@ -27,38 +25,6 @@ import summer.util.Assert;
  * @since Java7
  */
 public class AopUtil {
-    public static byte valueOf(Byte value) {
-        return null == value ? 0 : value.byteValue();
-    }
-
-    public static short valueOf(Short value) {
-        return null == value ? 0 : value.shortValue();
-    }
-
-    public static int valueOf(Integer value) {
-        return null == value ? 0 : value.intValue();
-    }
-
-    public static long valueOf(Long value) {
-        return null == value ? 0 : value.longValue();
-    }
-
-    public static double valueOf(Double value) {
-        return null == value ? 0 : value.doubleValue();
-    }
-
-    public static float valueOf(Float value) {
-        return null == value ? 0 : value.floatValue();
-    }
-
-    public static char valueOf(Character value) {
-        return null == value ? 0 : value.charValue();
-    }
-
-    public static boolean valueOf(Boolean value) {
-        return null == value ? false : value.booleanValue();
-    }
-
     public static AopFilter[] getAopFilters(Method method, IocContext iocContext) {
         List<AopFilter> aopFilters = new ArrayList<AopFilter>();
         if (null != method.getAnnotation(At.class)) { // 类型
@@ -85,39 +51,37 @@ public class AopUtil {
     }
 
     public static AopFilter getAopFilter(IocContext iocContext, String beanId) {
-        AopFilter aopFilter = iocContext.getBean(AopFilter.class, beanId);
-        Assert.noNull(aopFilter, "aopFilter[" + beanId + "] Bean not found");
-        return aopFilter;
+        return iocContext.getBean(AopFilter.class, beanId);
     }
 
-    public static ParameterAdapterAopFilter getParameterAdapterAopFilter(IocContext iocContext) {
-        if (iocContext.containsBean(ParameterAdapter.class)) {
-            return new ParameterAdapterAopFilter(iocContext.getBean(ParameterAdapter.class));
+    public static AopFilter getParameterAdapterAopFilter(IocContext iocContext) {
+        ParameterAdapter parameterAdapter;
+        if (iocContext.containsBean(IocContext.DEFAULT_PARAMETER_ADAPTER_BEAN_ID)) {
+            parameterAdapter = (ParameterAdapter) iocContext.getBean(IocContext.DEFAULT_PARAMETER_ADAPTER_BEAN_ID);
+        } else if (iocContext.containsBean(ParameterAdapter.class)) {
+            parameterAdapter = iocContext.getBean(ParameterAdapter.class);
         } else {
-            return new ParameterAdapterAopFilter(new SummerParameterAdapter(getConvertService(iocContext)));
+            parameterAdapter = new SummerParameterAdapter(IocUtil.getConvertService(iocContext));
         }
+        return new ParameterAdapterAopFilter(parameterAdapter);
     }
 
-    private static ConvertService getConvertService(IocContext iocContext) {
-        if (iocContext.containsBean(ConvertService.class)) {
-            return iocContext.getBean(ConvertService.class);
+    public static AopFilter getViewProcessorAopFilter(IocContext iocContext) {
+        ViewProcessor viewProcessor;
+        if (iocContext.containsBean(IocContext.DEFAULT_VIEW_PROCESSOR_BEAN_ID)) {
+            viewProcessor = (ViewProcessor) iocContext.getBean(IocContext.DEFAULT_VIEW_PROCESSOR_BEAN_ID);
+        } else if (iocContext.containsBean(ViewProcessor.class)) {
+            viewProcessor = iocContext.getBean(ViewProcessor.class);
         } else {
-            return new SummerConvertService();
+            viewProcessor = new SummerViewProcessor();
         }
-    }
-
-    public static ViewProcessorAopFilter getViewProcessorAopFilter(IocContext iocContext) {
-        if (iocContext.containsBean(ParameterAdapter.class)) {
-            return new ViewProcessorAopFilter(iocContext.getBean(ViewProcessor.class));
-        } else {
-            return new ViewProcessorAopFilter(new SummerViewProcessor());
-        }
+        return new ViewProcessorAopFilter(viewProcessor);
     }
 
     public static AopFilter getTransactionAopFilter(IocContext iocContext) {
         AopFilter transactionAopFilter;
-        if (iocContext.containsBean("transactionAopFilter")) {
-            transactionAopFilter = (AopFilter) iocContext.getBean("transactionAopFilter");
+        if (iocContext.containsBean(IocContext.DEFAULT_TRANSACTION_AOP_FILTER_BEAN_ID)) {
+            transactionAopFilter = (AopFilter) iocContext.getBean(IocContext.DEFAULT_TRANSACTION_AOP_FILTER_BEAN_ID);
         } else {
             transactionAopFilter = iocContext.getBean(TransactionAopFilter.class);
         }

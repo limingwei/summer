@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 
 import summer.aop.AopChain;
-import summer.util.Reflect;
 
 /**
  * @author li
@@ -42,7 +41,7 @@ public class JavassistSummerCompilerUtil {
         Class<?> returnType = method.getReturnType();
         String methodSignature = "\"" + getMethodSignature(method) + "\"";
 
-        String src = "public " + Reflect.typeToJavaCode(returnType) + " " + method.getName() + "(" + parameters(parameterTypes) + ") {";
+        String src = "public " + typeToJavaCode(returnType) + " " + method.getName() + "(" + parameters(parameterTypes) + ") {";
 
         String args = (0 == parameterTypes.length) ? "new Object[0]" : "new Object[] { " + argumentsPrimitived(parameterTypes) + " }";
 
@@ -100,7 +99,7 @@ public class JavassistSummerCompilerUtil {
             if (i > 0) {
                 src += ", ";
             }
-            src += Reflect.typeToJavaCode(parameterTypes[i]) + " _param_" + i;
+            src += typeToJavaCode(parameterTypes[i]) + " _param_" + i;
         }
         return src;
     }
@@ -166,24 +165,31 @@ public class JavassistSummerCompilerUtil {
     private static String objectToPrimitive(Class<?> type, String value) {
         String methodReturnTypeName = type.getName();
         if ("byte".equals(methodReturnTypeName)) {
-            // Byte.parseByte(s)
-            return "summer.aop.util.AopUtil.valueOf((java.lang.Byte)" + value + ")";
+            return "summer.util.PrimitiveTypeUtil.toPrimitive((java.lang.Byte)" + value + ")";
         } else if ("short".equals(methodReturnTypeName)) {
-            return "summer.aop.util.AopUtil.valueOf((java.lang.Short)" + value + ")";
+            return "summer.util.PrimitiveTypeUtil.toPrimitive((java.lang.Short)" + value + ")";
         } else if ("int".equals(methodReturnTypeName)) {
-            return "summer.aop.util.AopUtil.valueOf((java.lang.Integer)" + value + ")";
+            return "summer.util.PrimitiveTypeUtil.toPrimitive((java.lang.Integer)" + value + ")";
         } else if ("long".equals(methodReturnTypeName)) {
-            return "summer.aop.util.AopUtil.valueOf((java.lang.Long)" + value + ")";
+            return "summer.util.PrimitiveTypeUtil.toPrimitive((java.lang.Long)" + value + ")";
         } else if ("double".equals(methodReturnTypeName)) {
-            return "summer.aop.util.AopUtil.valueOf((java.lang.Double)" + value + ")";
+            return "summer.util.PrimitiveTypeUtil.toPrimitive((java.lang.Double)" + value + ")";
         } else if ("float".equals(methodReturnTypeName)) {
-            return "summer.aop.util.AopUtil.valueOf((java.lang.Float)" + value + ")";
+            return "summer.util.PrimitiveTypeUtil.toPrimitive((java.lang.Float)" + value + ")";
         } else if ("boolean".equals(methodReturnTypeName)) {
-            return "summer.aop.util.AopUtil.valueOf((java.lang.Boolean)" + value + ")";
+            return "summer.util.PrimitiveTypeUtil.toPrimitive((java.lang.Boolean)" + value + ")";
         } else if ("char".equals(methodReturnTypeName)) {
-            return "summer.aop.util.AopUtil.valueOf((java.lang.Character)" + value + ")";
+            return "summer.util.PrimitiveTypeUtil.toPrimitive((java.lang.Character)" + value + ")";
         } else {
-            return "(" + Reflect.typeToJavaCode(type) + ")" + value;
+            return "(" + typeToJavaCode(type) + ")" + value;
+        }
+    }
+
+    public static String typeToJavaCode(Class<?> type) {
+        if (type.isArray()) {
+            return type.getComponentType().getName() + "[]";
+        } else {
+            return type.getName();
         }
     }
 }

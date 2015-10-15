@@ -10,7 +10,6 @@ import java.util.Map;
 import summer.aop.AopType;
 import summer.aop.AopTypeMeta;
 import summer.converter.ConvertService;
-import summer.converter.impl.SummerConvertService;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocContext;
@@ -21,6 +20,7 @@ import summer.ioc.compiler.CachedSummerCompiler;
 import summer.ioc.compiler.JavassistSummerCompiler;
 import summer.ioc.compiler.util.JavassistSummerCompilerUtil;
 import summer.ioc.impl.util.SummerIocContextUtil;
+import summer.ioc.util.IocUtil;
 import summer.log.Logger;
 import summer.util.Assert;
 import summer.util.Log;
@@ -45,16 +45,10 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
     private SummerCompiler summerCompiler;
 
-    public IocLoader getIocLoader() {
-        return iocLoader;
-    }
-
     public SummerIocContext(IocLoader iocLoader) {
         log.info("\n\n\thttps://github.com/limingwei/summer\n");
 
         this.iocLoader = iocLoader;
-
-        this.convertService = new SummerConvertService();
 
         this.beanInstances = new HashMap<BeanDefinition, Object>();
 
@@ -64,7 +58,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         initBeans();
 
-        log.info("SummerIocContext inited, iocLoader={}, convertService={}", iocLoader, convertService);
+        log.info("SummerIocContext inited, iocLoader={}", iocLoader);
     }
 
     /**
@@ -76,6 +70,17 @@ public class SummerIocContext extends AbstractSummerIocContext {
      * 执行FactoryBean获得objectType,设置到beanDefinition
      */
     private void processFactoryBeans() {}
+
+    public IocLoader getIocLoader() {
+        return iocLoader;
+    }
+
+    public synchronized ConvertService getConvertService() {
+        if (null == convertService) {
+            convertService = IocUtil.getConvertService(this);
+        }
+        return convertService;
+    }
 
     public synchronized List<BeanDefinition> getBeanDefinitions() {
         if (null == beanDefinitions) {
@@ -116,7 +121,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
                     Reflect.setFieldValue(beanInstance, field, value);
                 } else {
                     Field field = Reflect.getDeclaredField(beanType, beanField.getName());
-                    Object value = convertService.convert(String.class, field.getType(), beanField.getValue());
+                    Object value = getConvertService().convert(String.class, field.getType(), beanField.getValue());
                     Reflect.setFieldValue(beanInstance, field, value);
                 }
             }

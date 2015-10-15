@@ -8,6 +8,12 @@ import java.util.List;
  * @since Java7
  */
 public interface IocContext {
+    public static final String DEFAULT_PARAMETER_ADAPTER_BEAN_ID = "parameterAdapter";
+
+    public static final String DEFAULT_VIEW_PROCESSOR_BEAN_ID = "viewProcessor";
+
+    public static final String DEFAULT_TRANSACTION_AOP_FILTER_BEAN_ID = "transactionAopFilter";
+
     public Object getBean(String id);
 
     public <T> T getBean(Class<T> type);
