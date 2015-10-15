@@ -14,6 +14,10 @@ public interface IocContext {
 
     public static final String DEFAULT_TRANSACTION_AOP_FILTER_BEAN_ID = "transactionAopFilter";
 
+    public static final String DEFAULT_CONVERT_SERVICE_BEAN_ID = "convertService";
+
+    public static final String DEFAULT_ACTION_INVOKE_SERVICE_BEAN_ID = "actionInvokeService";
+
     public Object getBean(String id);
 
     public <T> T getBean(Class<T> type);

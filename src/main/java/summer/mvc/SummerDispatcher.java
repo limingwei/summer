@@ -7,8 +7,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import summer.ioc.IocContext;
+import summer.ioc.util.IocUtil;
 import summer.log.Logger;
-import summer.mvc.impl.SummerActionInvokeService;
 import summer.mvc.impl.SummerMvcContext;
 import summer.util.Log;
 
@@ -41,9 +41,9 @@ public class SummerDispatcher {
         return mvcContext;
     }
 
-    public ActionInvokeService getActionInvokeService() {
+    public synchronized ActionInvokeService getActionInvokeService() {
         if (null == actionInvokeService) {
-            actionInvokeService = new SummerActionInvokeService(getIocContext());
+            actionInvokeService = IocUtil.getActionInvokeService(getIocContext());
         }
         return actionInvokeService;
     }
