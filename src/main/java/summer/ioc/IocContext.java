@@ -18,6 +18,8 @@ public interface IocContext {
 
     public static final String DEFAULT_ACTION_INVOKE_SERVICE_BEAN_ID = "actionInvokeService";
 
+    public static final String DEFAULT_ACTION_LOADER_BEAN_ID = "actionLoader";
+
     public Object getBean(String id);
 
     public <T> T getBean(Class<T> type);
