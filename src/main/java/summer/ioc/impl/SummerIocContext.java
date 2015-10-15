@@ -13,7 +13,6 @@ import summer.converter.ConvertService;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
 import summer.ioc.IocContext;
-import summer.ioc.IocContextAware;
 import summer.ioc.IocLoader;
 import summer.ioc.SummerCompiler;
 import summer.ioc.compiler.CachedSummerCompiler;
@@ -54,22 +53,8 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         this.summerCompiler = new CachedSummerCompiler(new JavassistSummerCompiler());
 
-        processFactoryBeans();
-
-        initBeans();
-
         log.info("SummerIocContext inited, iocLoader={}", iocLoader);
     }
-
-    /**
-     * 初始化配置为需要预先初始化的Bean
-     */
-    private void initBeans() {}
-
-    /**
-     * 执行FactoryBean获得objectType,设置到beanDefinition
-     */
-    private void processFactoryBeans() {}
 
     public IocLoader getIocLoader() {
         return iocLoader;
@@ -110,36 +95,11 @@ public class SummerIocContext extends AbstractSummerIocContext {
             Object beanInstance = newBeanInstance(beanType);
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
-                if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) { // 判断是否已经初始化, 如果已经初始化, 就直接将Bean注入
-                    Field field = Reflect.getDeclaredField(beanType, beanField.getName());
-
-                    Object value = newBeanInstance(field.getType());
-                    AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
-                    aopTypeMeta.setIocContext(this);
-                    aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
-
-                    Reflect.setFieldValue(beanInstance, field, value);
-                } else {
-                    Field field = Reflect.getDeclaredField(beanType, beanField.getName());
-                    Object value = getConvertService().convert(String.class, field.getType(), beanField.getValue());
-                    Reflect.setFieldValue(beanInstance, field, value);
-                }
-            }
-
-            if (beanInstance instanceof IocContextAware) {
-                ((IocContextAware) beanInstance).setIocContext(this);
+                setInjectFieldAopTypeValue(beanType, beanInstance, beanField);
             }
 
             if (beanInstance instanceof AopType) {
-                AopTypeMeta aopTypeMeta = ((AopType) beanInstance).getAopTypeMeta();
-                aopTypeMeta.setIocContext(this);
-                aopTypeMeta.setTarget(beanInstance); // 当前Bean实例
-
-                List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
-                for (Method method : methods) {
-                    String methodSignature = JavassistSummerCompilerUtil.getMethodSignature(method);
-                    aopTypeMeta.getMethodMap().put(methodSignature, method);
-                }
+                setAopTypeBeanInstanceFieldValue(beanDefinition, beanInstance);
             }
 
             log.info("inited bean " + beanDefinition.getId() + ", " + beanDefinition.getBeanType() + ", beanInstance=" + beanInstance);
@@ -148,6 +108,35 @@ public class SummerIocContext extends AbstractSummerIocContext {
             instance = beanInstance;
         }
         return instance;
+    }
+
+    private void setAopTypeBeanInstanceFieldValue(BeanDefinition beanDefinition, Object beanInstance) {
+        AopTypeMeta aopTypeMeta = ((AopType) beanInstance).getAopTypeMeta();
+        aopTypeMeta.setIocContext(this);
+        aopTypeMeta.setTarget(beanInstance); // 当前Bean实例
+
+        List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
+        for (Method method : methods) {
+            String methodSignature = JavassistSummerCompilerUtil.getMethodSignature(method);
+            aopTypeMeta.getMethodMap().put(methodSignature, method);
+        }
+    }
+
+    private void setInjectFieldAopTypeValue(Class<?> beanType, Object beanInstance, BeanField beanField) {
+        if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) { // 判断是否已经初始化, 如果已经初始化, 就直接将Bean注入
+            Field field = Reflect.getDeclaredField(beanType, beanField.getName());
+
+            Object value = newBeanInstance(field.getType());
+            AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
+            aopTypeMeta.setIocContext(this);
+            aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
+
+            Reflect.setFieldValue(beanInstance, field, value);
+        } else {
+            Field field = Reflect.getDeclaredField(beanType, beanField.getName());
+            Object value = getConvertService().convert(String.class, field.getType(), beanField.getValue());
+            Reflect.setFieldValue(beanInstance, field, value);
+        }
     }
 
     private Object newBeanInstance(Class<?> beanType) {
