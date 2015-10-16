@@ -45,7 +45,7 @@ public class JavassistSummerCompilerUtil {
 
         String args = (0 == parameterTypes.length) ? "new Object[0]" : "new Object[] { " + argumentsPrimitived(parameterTypes) + " }";
 
-        String aopChainDoFilter = "new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", getAopTypeMeta()).doFilter()";
+        String aopChainDoFilter = "new " + AopChain.class.getName() + "(this, " + methodSignature + ", " + args + ", aopTypeMeta).doFilter()";
         if ("void".equals(returnType.getName())) {
             src += aopChainDoFilter + ";";
         } else {
