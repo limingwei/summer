@@ -122,7 +122,12 @@ public class AopChain {
      */
     public AopChain invoke() {
         try {
-            setResult(((AopType) getTarget()).invoke(methodSignature, getArgs()));
+            if (getTarget() instanceof AopType) {
+                AopType aopType = (AopType) getTarget();
+                setResult(aopType.invoke(methodSignature, getArgs()));
+            } else {
+                throw new RuntimeException("target=" + getTarget() + ", methodSignature=" + methodSignature);
+            }
         } catch (Throwable e) {
             throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
         }

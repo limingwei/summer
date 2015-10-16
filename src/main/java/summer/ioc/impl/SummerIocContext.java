@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.validator.ValidateWith;
+
 import summer.aop.AopType;
 import summer.aop.AopTypeMeta;
 import summer.converter.ConvertService;
@@ -130,11 +132,11 @@ public class SummerIocContext extends AbstractSummerIocContext {
             log.info("setInjectFieldAopTypeValue() INJECT_TYPE_REFERENCE, beanInstance=" + beanInstance + ", fieldName=" + fieldName /* + ", value=" + value */);
             setFieldValue(beanInstance, fieldName, value);
         } else {
-            啊啊啊啊啊啊啊啊啊啊(beanType, beanInstance, beanField, fieldName);
+            setFieldValue(beanType, beanInstance, beanField, fieldName);
         }
     }
 
-    public void 啊啊啊啊啊啊啊啊啊啊(Class<?> beanType, Object beanInstance, BeanField beanField, String fieldName) {
+    public void setFieldValue(Class<?> beanType, Object beanInstance, BeanField beanField, String fieldName) {
         try {
             Field field = Reflect.getDeclaredField(beanType, fieldName);
             Object value = getConvertService().convert(String.class, field.getType(), beanField.getValue());
@@ -142,7 +144,10 @@ public class SummerIocContext extends AbstractSummerIocContext {
         } catch (Exception e) {
             List<Method> methods = Reflect.getPublicMethods(beanType);
             for (Method method : methods) {
-
+                if (method.getName().equals("set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1))) {
+                    Object value = getConvertService().convert(String.class, method.getParameterTypes()[0], beanField.getValue());
+                    Reflect.invokeMethod(beanInstance, method, new Object[] { value });
+                }
             }
         }
     }
@@ -152,7 +157,12 @@ public class SummerIocContext extends AbstractSummerIocContext {
             Field field = Reflect.getDeclaredField(beanInstance.getClass(), fieldName);
             Reflect.setFieldValue(beanInstance, field, value);
         } catch (Exception e) {
-            e.printStackTrace();
+            List<Method> methods = Reflect.getPublicMethods(beanInstance.getClass());
+            for (Method method : methods) {
+                if (method.getName().equals("set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1))) {
+                    Reflect.invokeMethod(beanInstance, method, new Object[] { value });
+                }
+            }
         }
     }
 
