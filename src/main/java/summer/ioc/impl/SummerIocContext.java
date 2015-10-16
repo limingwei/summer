@@ -1,6 +1,7 @@
 package summer.ioc.impl;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
@@ -112,13 +113,6 @@ public class SummerIocContext extends AbstractSummerIocContext {
     private void setAopTypeBeanInstanceFieldValue(BeanDefinition beanDefinition, Object beanInstance) {
         AopTypeMeta aopTypeMeta = ((AopType) beanInstance).getAopTypeMeta();
         aopTypeMeta.setIocContext(this);
-        //        aopTypeMeta.setTarget(beanInstance); // 当前Bean实例
-
-        //        List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
-        //        for (Method method : methods) {
-        //            String methodSignature = JavassistSummerCompilerUtil.getMethodSignature(method);
-        //            aopTypeMeta.getMethodMap().put(methodSignature, method);
-        //        }
     }
 
     private void setInjectFieldAopTypeValue(Class<?> beanType, Object beanInstance, BeanField beanField) {
@@ -133,12 +127,23 @@ public class SummerIocContext extends AbstractSummerIocContext {
                 aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
             }
 
-            log.info("setInjectFieldAopTypeValue() INJECT_TYPE_REFERENCE, beanInstance=" + beanInstance + ", fieldName=" + fieldName + ", value=" + value);
+            log.info("setInjectFieldAopTypeValue() INJECT_TYPE_REFERENCE, beanInstance=" + beanInstance + ", fieldName=" + fieldName /* + ", value=" + value */);
             setFieldValue(beanInstance, fieldName, value);
         } else {
+            啊啊啊啊啊啊啊啊啊啊(beanType, beanInstance, beanField, fieldName);
+        }
+    }
+
+    public void 啊啊啊啊啊啊啊啊啊啊(Class<?> beanType, Object beanInstance, BeanField beanField, String fieldName) {
+        try {
             Field field = Reflect.getDeclaredField(beanType, fieldName);
             Object value = getConvertService().convert(String.class, field.getType(), beanField.getValue());
             Reflect.setFieldValue(beanInstance, field, value);
+        } catch (Exception e) {
+            List<Method> methods = Reflect.getPublicMethods(beanType);
+            for (Method method : methods) {
+
+            }
         }
     }
 
