@@ -1,13 +1,13 @@
 package summer.dao.impl;
 
 import java.sql.Connection;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * @author li
@@ -15,10 +15,18 @@ import java.util.Map;
  * @since Java7
  */
 public class SummerDao extends AbstractSummerDao {
-    public List<Map<String, Object>> listMap(String sql) {
+    private NamedParameterParser namedParameterParser = new NamedParameterParser();
+
+    public List<Map<String, Object>> listMap(String sql, Map<String, Object> params) {
         try {
             Connection connection = getDataSource().getConnection();
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+
+            NamedParameterStatement preparedStatement = new NamedParameterStatement(connection, sql, namedParameterParser);
+
+            for (Entry<String, Object> entry : params.entrySet()) {
+                preparedStatement.setObject(entry.getKey(), entry.getValue());
+            }
+
             ResultSet resultSet = preparedStatement.executeQuery();
 
             ResultSetMetaData resultSetMetaData = resultSet.getMetaData();

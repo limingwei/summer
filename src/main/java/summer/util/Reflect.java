@@ -111,11 +111,21 @@ public class Reflect {
         try {
             return targetType.getDeclaredField(name);
         } catch (NoSuchFieldException e) {
+            return getDeclaredField(targetType.getSuperclass(), targetType, name);
+        } catch (Throwable e) {
+            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
+        }
+    }
+
+    private static Field getDeclaredField(Class<?> targetType, Class<?> originalType, String name) {
+        try {
+            return targetType.getDeclaredField(name);
+        } catch (NoSuchFieldException e) {
             Class<?> superType = targetType.getSuperclass();
             if (!Object.class.equals(superType)) {
-                return getDeclaredField(superType, name);
+                return getDeclaredField(superType, originalType, name);
             } else {
-                throw new RuntimeException(targetType + " do not has field " + name, e);
+                throw new RuntimeException("not found field " + name + " on " + originalType, e);
             }
         } catch (Throwable e) {
             throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);

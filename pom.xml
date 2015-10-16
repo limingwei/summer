@@ -20,6 +20,12 @@
         </dependency>
 
         <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>druid</artifactId>
+            <version>1.0.15</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.nutz</groupId>
             <artifactId>nutz</artifactId>
             <version>1.b.53</version>

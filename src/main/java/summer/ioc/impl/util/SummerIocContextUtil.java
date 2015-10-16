@@ -35,7 +35,8 @@ public class SummerIocContextUtil {
     private static boolean isBeanTypeMatch(Class<?> type, BeanDefinition beanDefinition) {
         Class<?> beanType = beanDefinition.getBeanType();
         return type.isAssignableFrom(beanType) || //
-                (FactoryBean.class.isAssignableFrom(beanType) && type.isAssignableFrom((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]));
+                (FactoryBean.class.isAssignableFrom(beanType) //
+                && type.isAssignableFrom((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]));
     }
 
     public static List<BeanDefinition> mergeBeanDefinitions(List<BeanDefinition> beanDefinitions) {
