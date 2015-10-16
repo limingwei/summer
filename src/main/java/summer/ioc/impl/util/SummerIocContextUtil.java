@@ -1,5 +1,6 @@
 package summer.ioc.impl.util;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -34,9 +35,20 @@ public class SummerIocContextUtil {
 
     private static boolean isBeanTypeMatch(Class<?> type, BeanDefinition beanDefinition) {
         Class<?> beanType = beanDefinition.getBeanType();
-        return type.isAssignableFrom(beanType) || //
-                (FactoryBean.class.isAssignableFrom(beanType) //
-                && type.isAssignableFrom((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]));
+
+        if (type.isAssignableFrom(beanType)) {
+            return true;
+        } else {
+            if (FactoryBean.class.isAssignableFrom(beanType)) {
+                Type[] genericInterfacesActualTypeArguments = Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class);
+                Type actualType = genericInterfacesActualTypeArguments[0];
+                Class<?> cls = (Class<?>) actualType;
+                if (type.isAssignableFrom(cls)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static List<BeanDefinition> mergeBeanDefinitions(List<BeanDefinition> beanDefinitions) {

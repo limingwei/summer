@@ -1,7 +1,6 @@
 package summer.ioc.impl;
 
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.List;
@@ -17,8 +16,8 @@ import summer.ioc.IocLoader;
 import summer.ioc.SummerCompiler;
 import summer.ioc.compiler.CachedSummerCompiler;
 import summer.ioc.compiler.JavassistSummerCompiler;
-import summer.ioc.compiler.util.JavassistSummerCompilerUtil;
 import summer.ioc.impl.util.SummerIocContextUtil;
+import summer.ioc.loader.XmlIocLoader;
 import summer.ioc.util.IocUtil;
 import summer.log.Logger;
 import summer.util.Assert;
@@ -113,29 +112,42 @@ public class SummerIocContext extends AbstractSummerIocContext {
     private void setAopTypeBeanInstanceFieldValue(BeanDefinition beanDefinition, Object beanInstance) {
         AopTypeMeta aopTypeMeta = ((AopType) beanInstance).getAopTypeMeta();
         aopTypeMeta.setIocContext(this);
-        aopTypeMeta.setTarget(beanInstance); // 当前Bean实例
+        //        aopTypeMeta.setTarget(beanInstance); // 当前Bean实例
 
-        List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
-        for (Method method : methods) {
-            String methodSignature = JavassistSummerCompilerUtil.getMethodSignature(method);
-            aopTypeMeta.getMethodMap().put(methodSignature, method);
-        }
+        //        List<Method> methods = Reflect.getPublicMethods(beanDefinition.getBeanType());
+        //        for (Method method : methods) {
+        //            String methodSignature = JavassistSummerCompilerUtil.getMethodSignature(method);
+        //            aopTypeMeta.getMethodMap().put(methodSignature, method);
+        //        }
     }
 
     private void setInjectFieldAopTypeValue(Class<?> beanType, Object beanInstance, BeanField beanField) {
-        if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) { // 判断是否已经初始化, 如果已经初始化, 就直接将Bean注入
-            Field field = Reflect.getDeclaredField(beanType, beanField.getName());
+        String fieldName = beanField.getName();
+        if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) { // TODO 判断是否已经初始化, 如果已经初始化, 就直接将Bean注入
+            Class<?> fieldType = XmlIocLoader.getFieldType(beanType, fieldName);
+            Object value = newBeanInstance(fieldType);
 
-            Object value = newBeanInstance(field.getType());
-            AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
-            aopTypeMeta.setIocContext(this);
-            aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
+            if (value instanceof AopType) {
+                AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
+                aopTypeMeta.setIocContext(this);
+                aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
+            }
 
-            Reflect.setFieldValue(beanInstance, field, value);
+            log.info("setInjectFieldAopTypeValue() INJECT_TYPE_REFERENCE, beanInstance=" + beanInstance + ", fieldName=" + fieldName + ", value=" + value);
+            setFieldValue(beanInstance, fieldName, value);
         } else {
-            Field field = Reflect.getDeclaredField(beanType, beanField.getName());
+            Field field = Reflect.getDeclaredField(beanType, fieldName);
             Object value = getConvertService().convert(String.class, field.getType(), beanField.getValue());
             Reflect.setFieldValue(beanInstance, field, value);
+        }
+    }
+
+    private static void setFieldValue(Object beanInstance, String fieldName, Object value) {
+        try {
+            Field field = Reflect.getDeclaredField(beanInstance.getClass(), fieldName);
+            Reflect.setFieldValue(beanInstance, field, value);
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

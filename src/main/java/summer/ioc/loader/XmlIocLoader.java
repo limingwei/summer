@@ -2,6 +2,7 @@ package summer.ioc.loader;
 
 import java.io.InputStream;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -81,20 +82,60 @@ public class XmlIocLoader implements IocLoader {
             String value = attribute.getNodeValue();
 
             if (name.startsWith("p:")) {
-                String fieldName = name.substring(2);
-                BeanField beanField = new BeanField(BeanField.INJECT_TYPE_VALUE, fieldName, value);
-                Field declaredField = Reflect.getDeclaredField(beanDefinition.getBeanType(), fieldName);
-                beanField.setType(declaredField.getType());
-                beanFields.add(beanField);
+                if (name.endsWith("-ref")) {
+                    String fieldName = name.substring(2, name.length() - 4);
+                    BeanField beanField = new BeanField(BeanField.INJECT_TYPE_REFERENCE, fieldName, value);
+
+                    Class<?> fieldType = getFieldType(beanDefinition.getBeanType(), fieldName);
+
+                    beanField.setType(fieldType);
+                    beanFields.add(beanField);
+                } else {
+                    String fieldName = name.substring(2);
+                    BeanField beanField = new BeanField(BeanField.INJECT_TYPE_VALUE, fieldName, value);
+
+                    Class<?> fieldType = getFieldType(beanDefinition.getBeanType(), fieldName);
+
+                    beanField.setType(fieldType);
+                    beanFields.add(beanField);
+                }
             } else if (name.startsWith("ref:")) {
                 String fieldName = name.substring(4);
                 BeanField beanField = new BeanField(BeanField.INJECT_TYPE_REFERENCE, fieldName, value);
-                Field declaredField = Reflect.getDeclaredField(beanDefinition.getBeanType(), fieldName);
-                beanField.setType(declaredField.getType());
+
+                Class<?> fieldType = getFieldType(beanDefinition.getBeanType(), fieldName);
+
+                beanField.setType(fieldType);
                 beanFields.add(beanField);
             }
         }
 
         return beanFields;
+    }
+
+    public static Class<?> getFieldType(Class<?> targetType, String fieldName) {
+        try {
+            return getFieldTypeByField(targetType, fieldName);
+        } catch (Exception e) {
+            return getFieldTypeBySetter(targetType, fieldName);
+        }
+    }
+
+    private static Class<?> getFieldTypeBySetter(Class<?> targetType, String fieldName) {
+        String setterName = "set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1);
+
+        List<Method> methods = Reflect.getPublicMethods(targetType);
+        for (Method method : methods) {
+            if (method.getName().equals(setterName)) {
+                return method.getParameterTypes()[0];
+            }
+        }
+        throw new RuntimeException("not found " + setterName + " method on " + targetType);
+    }
+
+    private static Class<?> getFieldTypeByField(Class<?> targetType, String fieldName) {
+        Field declaredField = Reflect.getDeclaredField(targetType, fieldName);
+        Class<?> fieldType = declaredField.getType();
+        return fieldType;
     }
 }

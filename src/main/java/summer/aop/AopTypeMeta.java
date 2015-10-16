@@ -8,6 +8,7 @@ import java.util.Map;
 import summer.aop.util.AopUtil;
 import summer.ioc.BeanField;
 import summer.ioc.IocContext;
+import summer.util.Assert;
 
 /**
  * @author li
@@ -27,16 +28,32 @@ public class AopTypeMeta implements Serializable {
 
     private Object target;
 
+    /**
+     * Aop对象target不为空
+     * 属性代理对象第一次target为空
+     */
+    public Object getTarget() {
+        return null != target ? target : getBeanFieldReferenceInjectDelegateTarget(iocContext, beanField);
+    }
+
+    private synchronized Object getBeanFieldReferenceInjectDelegateTarget(IocContext iocContext, BeanField beanField) {
+        if (null == target) {
+            Assert.noNull(beanField, "target 和 beanField 均为空");
+            target = iocContext.getBean(beanField.getType(), beanField.getValue());
+        }
+        return target;
+    }
+
     public Map<String, Method> getMethodMap() {
         return methodMap;
     }
 
-    public void setTarget(Object target) {
-        this.target = target;
-    }
-
     public void setBeanField(BeanField beanField) {
         this.beanField = beanField;
+    }
+
+    public BeanField getBeanField() {
+        return beanField;
     }
 
     public void setIocContext(IocContext iocContext) {
@@ -54,20 +71,5 @@ public class AopTypeMeta implements Serializable {
         } else {
             return new AopFilter[0];
         }
-    }
-
-    /**
-     * Aop对象target不为空
-     * 属性代理对象第一次target为空
-     */
-    public Object getTarget() {
-        return null != target ? target : getBeanFieldReferenceInjectDelegateTarget(iocContext, beanField);
-    }
-
-    private synchronized Object getBeanFieldReferenceInjectDelegateTarget(IocContext iocContext, BeanField beanField) {
-        if (null == target) {
-            target = iocContext.getBean(beanField.getType(), beanField.getValue());
-        }
-        return target;
     }
 }

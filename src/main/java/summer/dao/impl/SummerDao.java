@@ -9,6 +9,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import javax.sql.DataSource;
+
+import summer.util.Assert;
+
 /**
  * @author li
  * @version 1 (2015年10月9日 下午3:16:35)
@@ -19,7 +23,10 @@ public class SummerDao extends AbstractSummerDao {
 
     public List<Map<String, Object>> listMap(String sql, Map<String, Object> params) {
         try {
-            Connection connection = getDataSource().getConnection();
+            DataSource dataSource = getDataSource();
+            Assert.noNull(dataSource, "dataSource is null");
+
+            Connection connection = dataSource.getConnection();
 
             NamedParameterStatement preparedStatement = new NamedParameterStatement(connection, sql, namedParameterParser);
 

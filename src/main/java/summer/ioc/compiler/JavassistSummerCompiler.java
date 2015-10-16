@@ -1,5 +1,6 @@
 package summer.ioc.compiler;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import javassist.CtField;
 import javassist.CtMethod;
 import javassist.LoaderClassPath;
 import summer.aop.AopType;
+import summer.aop.AopTypeMeta;
 import summer.ioc.SummerCompiler;
 import summer.ioc.compiler.util.JavassistSummerCompilerUtil;
 import summer.log.Logger;
@@ -33,7 +35,12 @@ public class JavassistSummerCompiler implements SummerCompiler {
         ClassPool classPool = new ClassPool(true);
         classPool.appendClassPath(new LoaderClassPath(getClass().getClassLoader()));
 
-        String subClassName = originalTypeName + AOP_TYPE_NAME_SUFFIX;
+        String subClassName;
+        if (originalTypeName.contains("java")) {
+            subClassName = originalTypeName.replace("java", "gava") + AOP_TYPE_NAME_SUFFIX;
+        } else {
+            subClassName = originalTypeName + AOP_TYPE_NAME_SUFFIX;
+        }
         CtClass ctClass = classPool.makeClass(subClassName);
         CtClass superCtClass = JavassistUtil.getCtClass(classPool, originalTypeName);
 
@@ -62,7 +69,20 @@ public class JavassistSummerCompiler implements SummerCompiler {
         }
 
         log.info("compileClass for" + originalTypeName);
-        return JavassistUtil.ctClassToClass(ctClass);
+        Class<?> ctClassToClass = JavassistUtil.ctClassToClass(ctClass);
+
+        // 设置静态属性
+        try {
+            Field field = ctClassToClass.getDeclaredField("aopTypeMeta");
+            field.setAccessible(true);
+            AopTypeMeta aopTypeMeta = (AopTypeMeta) field.get(null);
+            for (Method method : methods) {
+                aopTypeMeta.getMethodMap().put(JavassistSummerCompilerUtil.getMethodSignature(method), method);
+            }
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
+        }
+        return ctClassToClass;
     }
 
     private static void addAopTypeCallMethod(CtClass ctClass, List<Method> methods) {
@@ -80,13 +100,13 @@ public class JavassistSummerCompiler implements SummerCompiler {
     }
 
     private static void addAopTypeMetaGetter(CtClass ctClass) {
-        String iocContextFieldSetterSrc = "public summer.aop.AopTypeMeta getAopTypeMeta() { return this.aopTypeMeta; } ";
+        String iocContextFieldSetterSrc = "public summer.aop.AopTypeMeta getAopTypeMeta() { return aopTypeMeta; } ";
         CtMethod iocContextFieldSetter = JavassistUtil.ctNewMethodMake(iocContextFieldSetterSrc, ctClass);
         JavassistUtil.ctClassAddMethod(ctClass, iocContextFieldSetter);
     }
 
     private static void addAopTypeMetaField(CtClass ctClass) {
-        CtField ctField = JavassistUtil.ctFieldWithInitMake("private summer.aop.AopTypeMeta aopTypeMeta=new summer.aop.AopTypeMeta(); ", ctClass);
+        CtField ctField = JavassistUtil.ctFieldWithInitMake("private static summer.aop.AopTypeMeta aopTypeMeta=new summer.aop.AopTypeMeta(); ", ctClass);
         JavassistUtil.ctClassAddField(ctClass, ctField);
     }
 

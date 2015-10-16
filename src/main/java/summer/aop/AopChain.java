@@ -1,7 +1,9 @@
 package summer.aop;
 
 import java.lang.reflect.Method;
+import java.util.Map;
 
+import summer.util.Assert;
 import summer.util.StringUtil;
 
 /**
@@ -86,13 +88,21 @@ public class AopChain {
         return this;
     }
 
-    public AopChain(String methodSignature, Object[] args, AopTypeMeta aopTypeMeta) {
+    public AopChain(Object target, String methodSignature, Object[] args, AopTypeMeta aopTypeMeta) {
+        Assert.noNull(aopTypeMeta, "aopTypeMeta is null");
+
         this.methodSignature = methodSignature;
         this.args = args;
 
-        this.method = aopTypeMeta.getMethodMap().get(methodSignature);
+        Map<String, Method> methodMap = aopTypeMeta.getMethodMap();
+        this.method = methodMap.get(methodSignature);
         this.filters = aopTypeMeta.getAopFilters(methodSignature);
-        this.target = aopTypeMeta.getTarget();
+
+        if (null == aopTypeMeta.getBeanField()) {
+            this.target = target;
+        } else {
+            this.target = aopTypeMeta.getTarget();
+        }
     }
 
     /**

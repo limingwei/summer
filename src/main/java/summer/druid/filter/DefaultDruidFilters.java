@@ -6,7 +6,6 @@ import java.util.List;
 
 import summer.ioc.FactoryBean;
 
-import com.alibaba.druid.filter.Filter;
 import com.alibaba.druid.filter.logging.Slf4jLogFilter;
 import com.alibaba.druid.filter.stat.MergeStatFilter;
 import com.alibaba.druid.wall.WallConfig;
@@ -17,9 +16,10 @@ import com.alibaba.druid.wall.WallFilter;
  * @version 1 (2015年10月16日 上午11:38:55)
  * @since Java7
  */
-public class DefaultDruidFilters implements FactoryBean<List<Filter>> {
-    public List<Filter> getObject() {
-        return new ArrayList<Filter>(Arrays.asList(
+@SuppressWarnings({ "rawtypes", "unchecked" })
+public class DefaultDruidFilters implements FactoryBean<List> {
+    public List getObject() {
+        return new ArrayList(Arrays.asList(
                 newMergeStatFilter(), //
                 newWallFilter(), //
                 newSlf4jLogFilter()));
