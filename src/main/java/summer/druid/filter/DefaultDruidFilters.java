@@ -19,8 +19,7 @@ import com.alibaba.druid.wall.WallFilter;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class DefaultDruidFilters implements FactoryBean<List> {
     public List getObject() {
-        return new ArrayList(Arrays.asList(
-                newMergeStatFilter(), //
+        return new ArrayList(Arrays.asList(newMergeStatFilter(), //
                 newWallFilter(), //
                 newSlf4jLogFilter()));
     }
@@ -33,8 +32,15 @@ public class DefaultDruidFilters implements FactoryBean<List> {
     }
 
     private Slf4jLogFilter newSlf4jLogFilter() {
-        Slf4jLogFilter slf4jLogFilter = new Slf4jLogFilter();
-        return slf4jLogFilter;
+        Slf4jLogFilter logFilter = new Slf4jLogFilter();
+        logFilter.setStatementExecutableSqlLogEnable(true);
+
+        logFilter.setStatementCloseAfterLogEnabled(false);
+        logFilter.setStatementCreateAfterLogEnabled(false);
+        logFilter.setStatementParameterSetLogEnabled(false);
+        logFilter.setStatementPrepareAfterLogEnabled(false);
+        logFilter.setStatementExecuteQueryAfterLogEnabled(false);
+        return logFilter;
     }
 
     private WallFilter newWallFilter() {

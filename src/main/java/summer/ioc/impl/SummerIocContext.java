@@ -7,8 +7,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.validator.ValidateWith;
-
 import summer.aop.AopType;
 import summer.aop.AopTypeMeta;
 import summer.converter.ConvertService;
@@ -56,24 +54,13 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         this.summerCompiler = new CachedSummerCompiler(new JavassistSummerCompiler());
 
-        initFactoryBeans();
+        afterIocContextInit();
 
         log.info("SummerIocContext inited, iocLoader={}", iocLoader);
     }
 
-    private void initFactoryBeans() {
-        log.info("initFactoryBeans");
-        for (BeanDefinition beanDefinition : getBeanDefinitions()) {
-            Class<?> beanType = beanDefinition.getBeanType();
-            if (FactoryBean.class.isAssignableFrom(beanType)) {
-                Object value = Reflect.newInstance(beanType);
-                for (BeanField beanField : beanDefinition.getBeanFields()) {
-                    System.err.println("#############" + beanField);
-                }
-                beanInstances.put(beanDefinition, value);
-                log.info("initFactoryBean, beanDefinition=" + beanDefinition);
-            }
-        }
+    public void afterIocContextInit() {
+        initFactoryBeans();
     }
 
     public IocLoader getIocLoader() {
@@ -93,6 +80,21 @@ public class SummerIocContext extends AbstractSummerIocContext {
             this.beanDefinitions = SummerIocContextUtil.mergeBeanDefinitions(allBeanDefinitions);
         }
         return beanDefinitions;
+    }
+
+    private void initFactoryBeans() {
+        log.info("initFactoryBeans");
+        for (BeanDefinition beanDefinition : getBeanDefinitions()) {
+            Class<?> beanType = beanDefinition.getBeanType();
+            if (FactoryBean.class.isAssignableFrom(beanType)) {
+                Object value = Reflect.newInstance(beanType);
+                for (BeanField beanField : beanDefinition.getBeanFields()) {
+                    System.err.println("#############" + beanField);
+                }
+                beanInstances.put(beanDefinition, value);
+                log.info("initFactoryBean, beanDefinition=" + beanDefinition);
+            }
+        }
     }
 
     public <T> T doGetBean(Class<T> type, String id) {
@@ -115,7 +117,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
             Object beanInstance = newBeanInstance(beanType);
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
-                setInjectFieldAopTypeValue(beanDefinition, beanInstance, beanField);
+                setBeanFieldValue(beanDefinition, beanInstance, beanField);
             }
 
             if (beanInstance instanceof AopType) {
@@ -135,50 +137,47 @@ public class SummerIocContext extends AbstractSummerIocContext {
         aopTypeMeta.setIocContext(this);
     }
 
-    private void setInjectFieldAopTypeValue(BeanDefinition beanDefinition, Object beanInstance, BeanField beanField) {
+    private void setBeanFieldValue(BeanDefinition beanDefinition, Object beanInstance, BeanField beanField) {
         String fieldName = beanField.getName();
         if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) { // TODO 判断是否已经初始化, 如果已经初始化, 就直接将Bean注入
-
-            BeanDefinition fieldBeanDefinition = SummerIocContextUtil.findMatchBeanDefinition(getBeanDefinitions(), beanField.getType(), beanField.getValue());
-            if (null != beanInstances.get(fieldBeanDefinition)) {
-                log.info("已经初始化, beanDefinition=" + fieldBeanDefinition);
-
-                Object fieldBeanInstance = getBeanInstance(fieldBeanDefinition);
-                Object value = SummerIocContextUtil.unwrapFactoryBean(fieldBeanInstance);
-                setFieldValue(beanInstance, fieldName, value);
-            } else {
-                log.info("未初始化, beanDefinition=" + fieldBeanDefinition);
-
-                Class<?> fieldType = XmlIocLoader.getFieldType(beanDefinition.getBeanType(), fieldName);
-                Object value = newBeanInstance(fieldType);
-
-                if (value instanceof AopType) {
-                    AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
-                    aopTypeMeta.setIocContext(this);
-                    aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
-                }
-
-                log.info("setInjectFieldAopTypeValue() INJECT_TYPE_REFERENCE, beanInstance=" + beanInstance + ", fieldName=" + fieldName /* + ", value=" + value */);
-                setFieldValue(beanInstance, fieldName, value);
-            }
+            setInjectTypeReferenceFieldValue(beanDefinition, beanInstance, beanField, fieldName);
         } else {
-            setFieldValue(beanDefinition.getBeanType(), beanInstance, beanField, fieldName);
+            setInjectTypeValueFieldValue(beanDefinition.getBeanType(), beanInstance, beanField, fieldName);
         }
     }
 
-    public void setFieldValue(Class<?> beanType, Object beanInstance, BeanField beanField, String fieldName) {
+    private void setInjectTypeReferenceFieldValue(BeanDefinition beanDefinition, Object beanInstance, BeanField beanField, String fieldName) {
+        BeanDefinition fieldBeanDefinition = SummerIocContextUtil.findMatchBeanDefinition(getBeanDefinitions(), beanField.getType(), beanField.getValue());
+        if (null != beanInstances.get(fieldBeanDefinition)) {
+            log.info("已经初始化, beanDefinition=" + fieldBeanDefinition);
+
+            Object fieldBeanInstance = getBeanInstance(fieldBeanDefinition);
+            Object value = SummerIocContextUtil.unwrapFactoryBean(fieldBeanInstance);
+            setFieldValue(beanInstance, fieldName, value);
+        } else {
+            log.info("未初始化, beanDefinition=" + fieldBeanDefinition);
+
+            Class<?> fieldType = XmlIocLoader.getFieldType(beanDefinition.getBeanType(), fieldName);
+            Object value = newBeanInstance(fieldType);
+
+            if (value instanceof AopType) {
+                AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
+                aopTypeMeta.setIocContext(this);
+                aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
+            }
+
+            log.info("setInjectFieldAopTypeValue() INJECT_TYPE_REFERENCE, beanInstance=" + beanInstance + ", fieldName=" + fieldName /* + ", value=" + value */);
+            setFieldValue(beanInstance, fieldName, value);
+        }
+    }
+
+    public void setInjectTypeValueFieldValue(Class<?> beanType, Object beanInstance, BeanField beanField, String fieldName) {
         try {
             Field field = Reflect.getDeclaredField(beanType, fieldName);
             Object value = getConvertService().convert(String.class, field.getType(), beanField.getValue());
             Reflect.setFieldValue(beanInstance, field, value);
         } catch (Exception e) {
-            List<Method> methods = Reflect.getPublicMethods(beanType);
-            for (Method method : methods) {
-                if (method.getName().equals("set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1))) {
-                    Object value = getConvertService().convert(String.class, method.getParameterTypes()[0], beanField.getValue());
-                    Reflect.invokeMethod(beanInstance, method, new Object[] { value });
-                }
-            }
+            setFieldValueBySetter(beanType, beanInstance, beanField, fieldName);
         }
     }
 
@@ -187,11 +186,25 @@ public class SummerIocContext extends AbstractSummerIocContext {
             Field field = Reflect.getDeclaredField(beanInstance.getClass(), fieldName);
             Reflect.setFieldValue(beanInstance, field, value);
         } catch (Exception e) {
-            List<Method> methods = Reflect.getPublicMethods(beanInstance.getClass());
-            for (Method method : methods) {
-                if (method.getName().equals("set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1))) {
-                    Reflect.invokeMethod(beanInstance, method, new Object[] { value });
-                }
+            setFieldValueBySetter(beanInstance.getClass(), beanInstance, fieldName, value);
+        }
+    }
+
+    private void setFieldValueBySetter(Class<?> beanType, Object beanInstance, BeanField beanField, String fieldName) {
+        List<Method> methods = Reflect.getPublicMethods(beanType);
+        for (Method method : methods) {
+            if (method.getName().equals("set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1))) {
+                Object value = getConvertService().convert(String.class, method.getParameterTypes()[0], beanField.getValue());
+                Reflect.invokeMethod(beanInstance, method, new Object[] { value });
+            }
+        }
+    }
+
+    private static void setFieldValueBySetter(Class<?> beanType, Object beanInstance, String fieldName, Object value) {
+        List<Method> methods = Reflect.getPublicMethods(beanInstance.getClass());
+        for (Method method : methods) {
+            if (method.getName().equals("set" + Character.toUpperCase(fieldName.charAt(0)) + fieldName.substring(1))) {
+                Reflect.invokeMethod(beanInstance, method, new Object[] { value });
             }
         }
     }

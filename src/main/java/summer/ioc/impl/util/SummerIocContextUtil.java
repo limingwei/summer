@@ -111,7 +111,7 @@ public class SummerIocContextUtil {
 
     public static BeanDefinition findMatchBeanDefinition(List<BeanDefinition> beanDefinitions, Class<?> type, String id) {
         for (BeanDefinition beanDefinition : beanDefinitions) {
-            if (isBeanTypeMatch(type, beanDefinition) // 
+            if (isBeanTypeMatch(type, beanDefinition) //
                     && ((null == id || id.isEmpty()) || id.equals(beanDefinition.getId()))) {
                 return beanDefinition;
             }

@@ -29,8 +29,7 @@ public class AopTypeMeta implements Serializable {
     private Object target;
 
     /**
-     * Aop对象target不为空
-     * 属性代理对象第一次target为空
+     * Aop对象target不为空 属性代理对象第一次target为空
      */
     public Object getTarget() {
         return null != target ? target : getBeanFieldReferenceInjectDelegateTarget(iocContext, beanField);

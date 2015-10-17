@@ -57,8 +57,7 @@ public class NamedParameterParser {
                     inSingleQuote = true;
                 } else if (c == '"') {
                     inDoubleQuote = true;
-                } else if (c == ':' && i + 1 < length &&
-                        Character.isJavaIdentifierStart(sqlSource.charAt(i + 1))) {
+                } else if (c == ':' && i + 1 < length && Character.isJavaIdentifierStart(sqlSource.charAt(i + 1))) {
                     int j = i + 2;
                     while (j < length && Character.isJavaIdentifierPart(sqlSource.charAt(j))) {
                         j++;
