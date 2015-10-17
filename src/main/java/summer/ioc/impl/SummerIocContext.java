@@ -14,6 +14,7 @@ import summer.aop.AopTypeMeta;
 import summer.converter.ConvertService;
 import summer.ioc.BeanDefinition;
 import summer.ioc.BeanField;
+import summer.ioc.FactoryBean;
 import summer.ioc.IocContext;
 import summer.ioc.IocLoader;
 import summer.ioc.SummerCompiler;
@@ -55,7 +56,24 @@ public class SummerIocContext extends AbstractSummerIocContext {
 
         this.summerCompiler = new CachedSummerCompiler(new JavassistSummerCompiler());
 
+        initFactoryBeans();
+
         log.info("SummerIocContext inited, iocLoader={}", iocLoader);
+    }
+
+    private void initFactoryBeans() {
+        log.info("initFactoryBeans");
+        for (BeanDefinition beanDefinition : getBeanDefinitions()) {
+            Class<?> beanType = beanDefinition.getBeanType();
+            if (FactoryBean.class.isAssignableFrom(beanType)) {
+                Object value = Reflect.newInstance(beanType);
+                for (BeanField beanField : beanDefinition.getBeanFields()) {
+                    System.err.println("#############" + beanField);
+                }
+                beanInstances.put(beanDefinition, value);
+                log.info("initFactoryBean, beanDefinition=" + beanDefinition);
+            }
+        }
     }
 
     public IocLoader getIocLoader() {
@@ -97,7 +115,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
             Object beanInstance = newBeanInstance(beanType);
 
             for (BeanField beanField : beanDefinition.getBeanFields()) {
-                setInjectFieldAopTypeValue(beanType, beanInstance, beanField);
+                setInjectFieldAopTypeValue(beanDefinition, beanInstance, beanField);
             }
 
             if (beanInstance instanceof AopType) {
@@ -117,22 +135,34 @@ public class SummerIocContext extends AbstractSummerIocContext {
         aopTypeMeta.setIocContext(this);
     }
 
-    private void setInjectFieldAopTypeValue(Class<?> beanType, Object beanInstance, BeanField beanField) {
+    private void setInjectFieldAopTypeValue(BeanDefinition beanDefinition, Object beanInstance, BeanField beanField) {
         String fieldName = beanField.getName();
         if (BeanField.INJECT_TYPE_REFERENCE.equals(beanField.getInjectType())) { // TODO 判断是否已经初始化, 如果已经初始化, 就直接将Bean注入
-            Class<?> fieldType = XmlIocLoader.getFieldType(beanType, fieldName);
-            Object value = newBeanInstance(fieldType);
 
-            if (value instanceof AopType) {
-                AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
-                aopTypeMeta.setIocContext(this);
-                aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
+            BeanDefinition fieldBeanDefinition = SummerIocContextUtil.findMatchBeanDefinition(getBeanDefinitions(), beanField.getType(), beanField.getValue());
+            if (null != beanInstances.get(fieldBeanDefinition)) {
+                log.info("已经初始化, beanDefinition=" + fieldBeanDefinition);
+
+                Object fieldBeanInstance = getBeanInstance(fieldBeanDefinition);
+                Object value = SummerIocContextUtil.unwrapFactoryBean(fieldBeanInstance);
+                setFieldValue(beanInstance, fieldName, value);
+            } else {
+                log.info("未初始化, beanDefinition=" + fieldBeanDefinition);
+
+                Class<?> fieldType = XmlIocLoader.getFieldType(beanDefinition.getBeanType(), fieldName);
+                Object value = newBeanInstance(fieldType);
+
+                if (value instanceof AopType) {
+                    AopTypeMeta aopTypeMeta = ((AopType) value).getAopTypeMeta();
+                    aopTypeMeta.setIocContext(this);
+                    aopTypeMeta.setBeanField(beanField); // beanField表示是属性懒加载代理对象,没有表示是Bean初始化
+                }
+
+                log.info("setInjectFieldAopTypeValue() INJECT_TYPE_REFERENCE, beanInstance=" + beanInstance + ", fieldName=" + fieldName /* + ", value=" + value */);
+                setFieldValue(beanInstance, fieldName, value);
             }
-
-            log.info("setInjectFieldAopTypeValue() INJECT_TYPE_REFERENCE, beanInstance=" + beanInstance + ", fieldName=" + fieldName /* + ", value=" + value */);
-            setFieldValue(beanInstance, fieldName, value);
         } else {
-            setFieldValue(beanType, beanInstance, beanField, fieldName);
+            setFieldValue(beanDefinition.getBeanType(), beanInstance, beanField, fieldName);
         }
     }
 
