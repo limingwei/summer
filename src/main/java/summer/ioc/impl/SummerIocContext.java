@@ -60,7 +60,7 @@ public class SummerIocContext extends AbstractSummerIocContext {
     }
 
     public void afterIocContextInit() {
-        initFactoryBeans();
+         initFactoryBeans();
     }
 
     public IocLoader getIocLoader() {
@@ -123,8 +123,6 @@ public class SummerIocContext extends AbstractSummerIocContext {
             if (beanInstance instanceof AopType) {
                 setAopTypeBeanInstanceFieldValue(beanDefinition, beanInstance);
             }
-
-            log.info("inited bean " + beanDefinition.getId() + ", " + beanDefinition.getBeanType() + ", beanInstance=" + beanInstance);
 
             beanInstances.put(beanDefinition, beanInstance);
             instance = beanInstance;
@@ -210,12 +208,16 @@ public class SummerIocContext extends AbstractSummerIocContext {
     }
 
     private Object newBeanInstance(Class<?> beanType) {
-        if (Modifier.isFinal(beanType.getModifiers())) {
-            log.warn("type {} is final, can not aop", beanType);
-            return Reflect.newInstance(beanType);
+        if (FactoryBean.class.isAssignableFrom(beanType)) {
+            return newBeanInstance((Class<?>) Reflect.getGenericInterfacesActualTypeArguments(beanType, FactoryBean.class)[0]);
         } else {
-            Class<?> type = summerCompiler.compileClass(beanType);
-            return Reflect.newInstance(type);
+            if (Modifier.isFinal(beanType.getModifiers())) {
+                log.warn("type {} is final, can not aop", beanType);
+                return Reflect.newInstance(beanType);
+            } else {
+                Class<?> type = summerCompiler.compileClass(beanType);
+                return Reflect.newInstance(type);
+            }
         }
     }
 }

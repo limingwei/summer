@@ -35,10 +35,20 @@ public class AopTypeMeta implements Serializable {
         return null != target ? target : getBeanFieldReferenceInjectDelegateTarget(iocContext, beanField);
     }
 
+    public void setTarget(Object target) {
+        this.target = target;
+    }
+
     private synchronized Object getBeanFieldReferenceInjectDelegateTarget(IocContext iocContext, BeanField beanField) {
         if (null == target) {
             Assert.noNull(beanField, "target 和 beanField 均为空");
-            target = iocContext.getBean(beanField.getType(), beanField.getValue());
+            Object targetBean = iocContext.getBean(beanField.getType(), beanField.getValue());
+            System.err.println("targetBean.type=" + targetBean.getClass());
+//            if (Object.class.equals(targetBean.getClass().getSuperclass())) {
+//                throw new RuntimeException("getBeanFieldReferenceInjectDelegateTarget 不是一个类代理对象, " + targetBean.getClass());
+//            } else {
+                target = targetBean;
+//            }
         }
         return target;
     }

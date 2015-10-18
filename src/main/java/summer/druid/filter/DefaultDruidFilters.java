@@ -19,7 +19,7 @@ import com.alibaba.druid.wall.WallFilter;
 @SuppressWarnings({ "rawtypes", "unchecked" })
 public class DefaultDruidFilters implements FactoryBean<List> {
     public List getObject() {
-        return new ArrayList(Arrays.asList(newMergeStatFilter(), //
+       return new ArrayList(Arrays.asList(newMergeStatFilter(), //
                 newWallFilter(), //
                 newSlf4jLogFilter()));
     }
@@ -56,6 +56,6 @@ public class DefaultDruidFilters implements FactoryBean<List> {
     }
 
     public Class<?> getObjectType() {
-        return List.class;
+        return ArrayList.class;
     }
 }

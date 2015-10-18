@@ -129,7 +129,11 @@ public class AopChain {
                 throw new RuntimeException("target=" + getTarget() + ", methodSignature=" + methodSignature);
             }
         } catch (Throwable e) {
-            throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
+            if (e instanceof AbstractMethodError) {
+                throw new RuntimeException("target.type=" + getTarget().getClass(), e);
+            } else {
+                throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);
+            }
         }
         return this;
     }
