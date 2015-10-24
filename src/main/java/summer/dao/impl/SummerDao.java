@@ -2,15 +2,15 @@ package summer.dao.impl;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import javax.sql.DataSource;
 
+import summer.dao.result.MapListResultSetTransformer;
+import summer.dao.statement.NamedParameterParser;
+import summer.dao.statement.NamedParameterStatement;
+import summer.dao.util.NamedParameterStatementUtil;
 import summer.util.Assert;
 
 /**
@@ -30,35 +30,16 @@ public class SummerDao extends AbstractSummerDao {
 
             NamedParameterStatement preparedStatement = new NamedParameterStatement(connection, sql, namedParameterParser);
 
-            for (Entry<String, Object> entry : params.entrySet()) {
-                preparedStatement.setObject(entry.getKey(), entry.getValue());
-            }
+            NamedParameterStatementUtil.setParameters(preparedStatement, params);
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            ResultSetMetaData resultSetMetaData = resultSet.getMetaData();
-            int columnCount = resultSetMetaData.getColumnCount();
-
-            String[] columnLabels = new String[columnCount];
-            for (int i = 0; i < columnCount; i++) {
-                columnLabels[i] = resultSetMetaData.getColumnLabel(i + 1);
-            }
-
-            List<Map<String, Object>> mapList = new ArrayList<Map<String, Object>>();
-            while (resultSet.next()) {
-                Map<String, Object> map = new HashMap<String, Object>();
-
-                for (int i = 0; i < columnCount; i++) {
-                    Object value = resultSet.getObject(i + 1);
-                    map.put(columnLabels[i], value);
-                }
-
-                mapList.add(map);
-            }
+            List<Map<String, Object>> mapList = new MapListResultSetTransformer().transform(resultSet);
 
             resultSet.close();
             preparedStatement.close();
             connection.close();
+
             return mapList;
         } catch (Exception e) {
             throw (e instanceof RuntimeException) ? (RuntimeException) e : new RuntimeException(e);

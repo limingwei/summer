@@ -1,4 +1,4 @@
-package summer.dao.impl;
+package summer.dao.statement;
 
 import java.util.HashMap;
 import java.util.LinkedList;

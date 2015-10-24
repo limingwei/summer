@@ -1,4 +1,4 @@
-package summer.dao.impl;
+package summer.dao.result;
 
 import java.sql.ResultSet;
 import java.util.Map;
