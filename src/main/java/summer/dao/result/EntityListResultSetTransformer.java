@@ -1,11 +1,14 @@
 package summer.dao.result;
 
+import java.lang.reflect.Field;
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.util.ArrayList;
 import java.util.List;
 
 import summer.dao.ResultSetTransformer;
+import summer.log.Logger;
+import summer.util.Log;
 import summer.util.Reflect;
 
 /**
@@ -14,6 +17,8 @@ import summer.util.Reflect;
  * @since Java7
  */
 public class EntityListResultSetTransformer<T> implements ResultSetTransformer<List<T>> {
+    private static final Logger log = Log.slf4j();
+
     private Class<T> entityType;
 
     public EntityListResultSetTransformer(Class<T> type) {
@@ -37,7 +42,17 @@ public class EntityListResultSetTransformer<T> implements ResultSetTransformer<L
                 for (int i = 0; i < columnCount; i++) {
                     Object value = resultSet.getObject(i + 1);
                     String name = columnLabels[i];
-                    Reflect.getDeclaredField(entityType, name).set(newInstance, value);
+
+                    int index = name.indexOf('$');
+                    if (index > 0) {
+                        //
+                    } else {
+                        Field declaredField = getDeclaredField(entityType, name);
+                        if (null != declaredField) {
+                            declaredField.setAccessible(true);
+                            declaredField.set(newInstance, value);
+                        }
+                    }
                 }
 
                 mapList.add(newInstance);
@@ -45,6 +60,15 @@ public class EntityListResultSetTransformer<T> implements ResultSetTransformer<L
             return mapList;
         } catch (Exception e) {
             throw new RuntimeException(e);
+        }
+    }
+
+    private Field getDeclaredField(Class<T> entityType, String name) {
+        try {
+            return Reflect.getDeclaredField(entityType, name);
+        } catch (Exception e) {
+            log.info("field " + name + " on " + entityType + " not found");
+            return null;
         }
     }
 }

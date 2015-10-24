@@ -124,7 +124,7 @@ public class Reflect {
             return targetType.getDeclaredField(name);
         } catch (NoSuchFieldException e) {
             Class<?> superType = targetType.getSuperclass();
-            if (!Object.class.equals(superType)) {
+            if (null != superType && !Object.class.equals(superType)) {
                 return getDeclaredField(superType, originalType, name);
             } else {
                 throw new RuntimeException("not found field " + name + " on " + originalType, e);
