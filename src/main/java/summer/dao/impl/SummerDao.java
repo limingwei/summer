@@ -7,6 +7,8 @@ import java.util.Map;
 
 import javax.sql.DataSource;
 
+import summer.dao.ResultSetTransformer;
+import summer.dao.result.EntityListResultSetTransformer;
 import summer.dao.result.MapListResultSetTransformer;
 import summer.dao.statement.NamedParameterParser;
 import summer.dao.statement.NamedParameterStatement;
@@ -21,7 +23,16 @@ import summer.util.Assert;
 public class SummerDao extends AbstractSummerDao {
     private NamedParameterParser namedParameterParser = new NamedParameterParser();
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    public <T> List<T> listEntity(Class<T> type, String sql, Map<String, Object> params) {
+        return doList(new EntityListResultSetTransformer(type), sql, params);
+    }
+
     public List<Map<String, Object>> listMap(String sql, Map<String, Object> params) {
+        return doList(new MapListResultSetTransformer(), sql, params);
+    }
+
+    private <T> T doList(ResultSetTransformer<T> resultSetTransformer, String sql, Map<String, Object> params) {
         try {
             DataSource dataSource = getDataSource();
             Assert.noNull(dataSource, "dataSource is null");
@@ -34,7 +45,7 @@ public class SummerDao extends AbstractSummerDao {
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
-            List<Map<String, Object>> mapList = new MapListResultSetTransformer().transform(resultSet);
+            T mapList = resultSetTransformer.transform(resultSet);
 
             resultSet.close();
             preparedStatement.close();

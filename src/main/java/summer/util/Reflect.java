@@ -118,6 +118,8 @@ public class Reflect {
     }
 
     private static Field getDeclaredField(Class<?> targetType, Class<?> originalType, String name) {
+        Assert.noNull(targetType, "targetType is null");
+
         try {
             return targetType.getDeclaredField(name);
         } catch (NoSuchFieldException e) {
