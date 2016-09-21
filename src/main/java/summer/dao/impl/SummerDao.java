@@ -23,7 +23,6 @@ import summer.util.Assert;
 public class SummerDao extends AbstractSummerDao {
     private NamedParameterParser namedParameterParser = new NamedParameterParser();
 
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public <T> List<T> listEntity(Class<T> type, String sql, Map<String, Object> params) {
         return doList(new EntityListResultSetTransformer(type), sql, params);
     }
